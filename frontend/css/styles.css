@@ -1,0 +1,84 @@
+/* KalaSetu AI Custom Mobile Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --color-terracotta: #C85A32;
+  --color-ochre: #D97706;
+  --color-warm-bg: #FAF6F0;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #F4EFE6;
+  color: #1C1917;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Hide scrollbar for clean mobile tabs */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Interactive Slider handle pulse */
+#slider-divider div {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+/* Mobile Simulator Mode Styles */
+#phone-frame-wrapper.is-simulator {
+  max-width: 420px;
+  margin: 24px auto;
+  border-radius: 44px;
+  box-shadow: 0 25px 60px -15px rgba(50, 30, 10, 0.35), 0 0 0 10px #292524, 0 0 0 12px #44403C;
+  overflow: hidden;
+  height: calc(100vh - 48px);
+  max-height: 880px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: #FFFDF9;
+}
+
+#phone-frame-wrapper.is-simulator #screen-container {
+  overflow-y: auto;
+  flex: 1;
+}
+
+#phone-frame-wrapper.is-simulator .phone-notch {
+  display: block;
+}
+
+.phone-notch {
+  display: none;
+  width: 120px;
+  height: 24px;
+  background-color: #292524;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+}
+
+/* Button tactile press effect */
+button:active {
+  transform: scale(0.97);
+}

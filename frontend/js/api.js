@@ -1,0 +1,231 @@
+// API Client for KalaSetu AI Full-Stack Marketplace
+
+const API_BASE = "";
+
+class ApiClient {
+  constructor() {
+    this.token = localStorage.getItem("kalasetu_token") || null;
+    this.user = JSON.parse(localStorage.getItem("kalasetu_user") || "null");
+  }
+
+  setAuth(token, user) {
+    this.token = token;
+    this.user = user;
+    localStorage.setItem("kalasetu_token", token);
+    localStorage.setItem("kalasetu_user", JSON.stringify(user));
+    window.dispatchEvent(new CustomEvent("authChanged", { detail: { user, token } }));
+  }
+
+  clearAuth() {
+    this.token = null;
+    this.user = null;
+    localStorage.removeItem("kalasetu_token");
+    localStorage.removeItem("kalasetu_user");
+    window.dispatchEvent(new CustomEvent("authChanged", { detail: { user: null, token: null } }));
+  }
+
+  getHeaders(isMultipart = false) {
+    const headers = {};
+    if (!isMultipart) {
+      headers["Content-Type"] = "application/json";
+    }
+    if (this.token) {
+      headers["Authorization"] = `Bearer ${this.token}`;
+    }
+    return headers;
+  }
+
+  async request(endpoint, options = {}) {
+    const url = `${API_BASE}${endpoint}`;
+    const headers = { ...this.getHeaders(options.isMultipart), ...(options.headers || {}) };
+    
+    const config = {
+      ...options,
+      headers
+    };
+
+    if (config.isMultipart) {
+      delete config.isMultipart;
+    } else if (config.body && typeof config.body === "object") {
+      config.body = JSON.stringify(config.body);
+    }
+
+    try {
+      const response = await fetch(url, config);
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          if (this.token) {
+            this.clearAuth();
+          }
+        }
+        const errorMsg = data.detail || data.message || "An unexpected error occurred.";
+        throw new Error(errorMsg);
+      }
+
+      return data;
+    } catch (err) {
+      console.error(`API Error on [${options.method || 'GET'}] ${endpoint}:`, err);
+      throw err;
+    }
+  }
+
+  // Auth Endpoints
+  async register(formData) {
+    const res = await this.request("/api/auth/register", { method: "POST", body: formData });
+    this.setAuth(res.access_token, res.user);
+    return res;
+  }
+
+  async login(email, password) {
+    const res = await this.request("/api/auth/login", {
+      method: "POST",
+      body: { email, password }
+    });
+    this.setAuth(res.access_token, res.user);
+    return res;
+  }
+
+  async getMe() {
+    const res = await this.request("/api/auth/me");
+    if (res.user) {
+      this.user = res.user;
+      localStorage.setItem("kalasetu_user", JSON.stringify(res.user));
+    }
+    return res.user;
+  }
+
+  async updateProfile(profileData) {
+    return await this.request("/api/auth/profile", { method: "PUT", body: profileData });
+  }
+
+  async resetPassword(email, new_password) {
+    return await this.request("/api/auth/reset-password", {
+      method: "POST",
+      body: { email, new_password }
+    });
+  }
+
+  // Products
+  async getCategories() {
+    return await this.request("/api/categories");
+  }
+
+  async getProducts(params = {}) {
+    const searchParams = new URLSearchParams();
+    if (params.q) searchParams.append("q", params.q);
+    if (params.category) searchParams.append("category", params.category);
+    if (params.seller_id) searchParams.append("seller_id", params.seller_id);
+    if (params.sort) searchParams.append("sort", params.sort);
+    const qs = searchParams.toString();
+    return await this.request(`/api/products${qs ? `?${qs}` : ''}`);
+  }
+
+  async getProduct(id) {
+    return await this.request(`/api/products/${id}`);
+  }
+
+  async createProduct(productData) {
+    return await this.request("/api/products", { method: "POST", body: productData });
+  }
+
+  async updateProduct(id, productData) {
+    return await this.request(`/api/products/${id}`, { method: "PUT", body: productData });
+  }
+
+  async deleteProduct(id) {
+    return await this.request(`/api/products/${id}`, { method: "DELETE" });
+  }
+
+  // AI Assistant
+  async uploadAndEnhance(formData) {
+    return await this.request("/api/ai/upload-and-enhance", {
+      method: "POST",
+      body: formData,
+      isMultipart: true
+    });
+  }
+
+  async regenerateAiText(imageUrl, language, hint) {
+    return await this.request("/api/ai/regenerate-text", {
+      method: "POST",
+      body: { image_url: imageUrl, language, hint }
+    });
+  }
+
+  // Cart
+  async getCart() {
+    return await this.request("/api/cart");
+  }
+
+  async addToCart(productId, quantity = 1) {
+    return await this.request("/api/cart/add", {
+      method: "POST",
+      body: { product_id: productId, quantity }
+    });
+  }
+
+  async updateCartItem(itemId, quantity) {
+    return await this.request(`/api/cart/item/${itemId}`, {
+      method: "PUT",
+      body: { quantity }
+    });
+  }
+
+  async removeCartItem(itemId) {
+    return await this.request(`/api/cart/item/${itemId}`, { method: "DELETE" });
+  }
+
+  // Orders
+  async checkout(orderData) {
+    return await this.request("/api/orders/checkout", {
+      method: "POST",
+      body: orderData
+    });
+  }
+
+  async getBuyerOrders() {
+    return await this.request("/api/orders/buyer");
+  }
+
+  async getSellerOrders() {
+    return await this.request("/api/orders/seller");
+  }
+
+  async getOrder(id) {
+    return await this.request(`/api/orders/${id}`);
+  }
+
+  async updateOrderStatus(orderId, status) {
+    return await this.request(`/api/orders/${orderId}/status`, {
+      method: "PUT",
+      body: { status }
+    });
+  }
+
+  // Seller Dashboard & Profiles
+  async getSellerDashboard() {
+    return await this.request("/api/seller/dashboard");
+  }
+
+  async getPublicArtisan(id) {
+    return await this.request(`/api/seller/artisan/${id}`);
+  }
+
+  // Notifications
+  async getNotifications() {
+    return await this.request("/api/notifications");
+  }
+
+  async markNotificationRead(id) {
+    return await this.request(`/api/notifications/${id}/read`, { method: "PUT" });
+  }
+
+  async markAllNotificationsRead() {
+    return await this.request("/api/notifications/read-all", { method: "PUT" });
+  }
+}
+
+const api = new ApiClient();
