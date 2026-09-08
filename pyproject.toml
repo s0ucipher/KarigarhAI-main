@@ -1,3 +1,25 @@
+[project]
+name = "karigarhai"
+version = "0.1.0"
+description = "KarigarhAI - Artisan Marketplace"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.0.0",
+    "pillow>=10.0.0",
+    "pyjwt>=2.8.0",
+    "cryptography>=42.0.0",
+    "requests>=2.31.0",
+    "google-genai>=0.1.0",
+    "python-dotenv>=1.0.0",
+    "python-multipart>=0.0.9",
+]
+
+[tool.uv]
+package = false
+
 [tool.vercel]
 entrypoint = "main:app"
 
