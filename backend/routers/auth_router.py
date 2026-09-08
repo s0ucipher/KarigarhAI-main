@@ -84,23 +84,37 @@ def register(req: RegisterRequest):
         VALUES (?, 'Welcome to KalaSetu AI!', 'Your account has been successfully created. Welcome aboard!', 'system')
     """, (user_id,))
 
+    user_data = {
+        "id": user_id,
+        "name": req.name.strip(),
+        "email": req.email.lower().strip(),
+        "role": req.role,
+        "phone": req.phone,
+        "avatar_url": default_avatar,
+        "language": req.language or "en"
+    }
+
+    if req.role == "seller":
+        cursor.execute("SELECT * FROM seller_profiles WHERE user_id = ?", (user_id,))
+        seller_row = cursor.fetchone()
+        if seller_row:
+            user_data["seller_profile"] = dict(seller_row)
+    else:
+        cursor.execute("SELECT * FROM buyer_profiles WHERE user_id = ?", (user_id,))
+        buyer_row = cursor.fetchone()
+        if buyer_row:
+            user_data["buyer_profile"] = dict(buyer_row)
+
     conn.commit()
     conn.close()
 
     # Generate token
-    token = create_access_token({"sub": str(user_id), "role": req.role, "email": req.email.lower()})
+    token = create_access_token({"sub": str(user_id), "role": req.role, "email": req.email.lower().strip()})
 
     return {
         "access_token": token,
         "token_type": "bearer",
-        "user": {
-            "id": user_id,
-            "name": req.name,
-            "email": req.email.lower(),
-            "role": req.role,
-            "language": req.language or "en",
-            "phone": req.phone
-        }
+        "user": user_data
     }
 
 @router.post("/login")

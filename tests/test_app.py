@@ -94,6 +94,51 @@ class TestKalaSetuAI(unittest.TestCase):
         data = res.json()
         self.assertEqual(data["user"]["role"], "seller")
         self.assertIn("access_token", data)
+        self.assertIn("seller_profile", data["user"])
+        self.assertEqual(data["user"]["seller_profile"]["craft_specialization"], "Sholapith Traditional Craft")
+
+    def test_04b_auth_register_new_buyer(self):
+        import uuid
+        unique_email = f"buyer_{uuid.uuid4().hex[:6]}@kalasetu.test"
+        res = self.client.post("/api/auth/register", json={
+            "name": "Ananya Sen",
+            "email": unique_email,
+            "password": "buyerpass123",
+            "role": "buyer",
+            "phone": "+91 98765 12345"
+        })
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(data["user"]["role"], "buyer")
+        self.assertIn("access_token", data)
+        self.assertIn("buyer_profile", data["user"])
+
+    def test_04c_auth_register_duplicate_email(self):
+        res = self.client.post("/api/auth/register", json={
+            "name": "Ramesh Kumar",
+            "email": "ramesh@kalasetu.ai",
+            "password": "newpassword123",
+            "role": "seller"
+        })
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("already exists", res.json()["detail"])
+
+    def test_04d_auth_register_invalid_role(self):
+        res = self.client.post("/api/auth/register", json={
+            "name": "Hacker",
+            "email": "hacker@test.com",
+            "password": "password123",
+            "role": "superadmin"
+        })
+        self.assertEqual(res.status_code, 400)
+
+    def test_04e_firebase_config_endpoint(self):
+        res = self.client.get("/api/auth/firebase-config")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn("is_configured", data)
+        self.assertIn("apiKey", data)
+        self.assertIn("projectId", data)
 
     def test_05_ai_upload_and_enhance(self):
         # Login as seller

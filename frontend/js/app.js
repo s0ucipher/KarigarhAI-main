@@ -58,12 +58,30 @@ class App {
   }
 
   navigate(screenName, params = {}) {
+    if (this.currentScreen !== screenName && this.currentScreen !== "auth") {
+      this.previousScreen = this.currentScreen;
+      this.previousParams = this.screenParams;
+    }
     this.currentScreen = screenName;
     this.screenParams = params;
     window.scrollTo({ top: 0, behavior: "smooth" });
     this.renderTopBar();
     this.renderNav();
     this.renderCurrentScreen();
+  }
+
+  goBack() {
+    if (this.previousScreen && this.previousScreen !== "auth") {
+      const prev = this.previousScreen;
+      const prevParams = this.previousParams || {};
+      this.previousScreen = null;
+      this.previousParams = null;
+      this.navigate(prev, prevParams);
+    } else if (window.history && window.history.length > 1) {
+      window.history.back();
+    } else {
+      this.navigate("buyer_marketplace");
+    }
   }
 
   async switchUserMode(targetRole) {

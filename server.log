@@ -1,0 +1,247 @@
+INFO:     Will watch for changes in these directories: ['/Users/sougatapoddar41gmail.com/Downloads/Projects/KarigarhAI-main']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [7682] using StatReload
+INFO:     Started server process [7685]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50791 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50799 - "POST /api/auth/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50800 - "POST /api/auth/register HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:50805 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50807 - "POST /api/auth/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50822 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50824 - "GET /api/cart HTTP/1.1" 401 Unauthorized
+WARNING:  StatReload detected changes in 'backend/config.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7685]
+INFO:     Started server process [8215]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'backend/database.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [8215]
+INFO:     Started server process [8223]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'backend/routers/auth_router.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [8223]
+INFO:     Started server process [8310]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50853 - "GET / HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'tests/test_app.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [8310]
+INFO:     Started server process [8513]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:50879 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50904 - "GET /?t=auth_test_1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50904 - "GET /css/styles.css?v=2.0.2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50908 - "GET /js/api.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50906 - "GET /js/i18n.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50909 - "GET /js/firebase_auth.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50911 - "GET /js/screens/seller_dashboard.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50910 - "GET /js/screens/auth.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50914 - "GET /js/screens/seller_add_product.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50915 - "GET /js/screens/seller_orders.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50917 - "GET /js/screens/buyer_marketplace.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50918 - "GET /js/screens/buyer_product_details.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50919 - "GET /js/screens/buyer_cart_checkout.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50916 - "GET /js/screens/seller_profile.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50915 - "GET /js/screens/buyer_profile.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50914 - "GET /js/screens/buyer_orders.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50917 - "GET /js/app.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50914 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50917 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50917 - "GET /uploads/enhanced_artisan_7de914d58a.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50914 - "GET /uploads/enhanced_artisan_c3a854d36c.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50915 - "GET /uploads/enhanced_artisan_1b89d0ded3.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50929 - "GET /api/products/26 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50945 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50946 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50961 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50962 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50998 - "POST /api/auth/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50998 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50999 - "GET /api/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50999 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50998 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50998 - "GET /uploads/enhanced_artisan_7de914d58a.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:50999 - "GET /uploads/enhanced_artisan_1b89d0ded3.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51000 - "GET /uploads/enhanced_artisan_c3a854d36c.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51006 - "GET /?t=auth_test_1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51006 - "GET /js/i18n.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51007 - "GET /js/api.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51008 - "GET /js/firebase_auth.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51009 - "GET /js/screens/auth.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51010 - "GET /js/app.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51010 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51009 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51007 - "GET /api/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51008 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51018 - "GET /api/products/26 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51035 - "GET /api/products/26 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51051 - "POST /api/auth/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51051 - "GET /api/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51051 - "GET /api/seller/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51054 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51055 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51055 - "GET /uploads/enhanced_artisan_7de914d58a.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51054 - "GET /uploads/enhanced_artisan_c3a854d36c.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51056 - "GET /uploads/enhanced_artisan_1b89d0ded3.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51065 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51066 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51069 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51070 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51071 - "GET /?t=auth_test_2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51072 - "GET /js/api.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51071 - "GET /js/i18n.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51074 - "GET /js/screens/auth.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51073 - "GET /js/firebase_auth.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51076 - "GET /js/screens/seller_add_product.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51075 - "GET /js/screens/seller_dashboard.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51071 - "GET /js/screens/seller_profile.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51072 - "GET /js/screens/seller_orders.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51073 - "GET /js/screens/buyer_product_details.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51075 - "GET /js/screens/buyer_orders.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51076 - "GET /js/screens/buyer_cart_checkout.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51074 - "GET /js/screens/buyer_marketplace.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51071 - "GET /js/screens/buyer_profile.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51072 - "GET /js/app.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51071 - "GET /api/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51072 - "GET /api/seller/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51077 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51078 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51082 - "GET /api/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51084 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51085 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51087 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51088 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:51090 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:51094 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:51095 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:51099 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51099 - "GET /api/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51099 - "GET /api/seller/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51103 - "GET /?t=auth_check_final HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51103 - "GET /js/i18n.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51104 - "GET /js/api.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51105 - "GET /js/firebase_auth.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51106 - "GET /js/screens/auth.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51107 - "GET /js/app.js?v=2.0.3 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51106 - "GET /api/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51107 - "GET /api/seller/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51107 - "GET /uploads/enhanced_artisan_7de914d58a.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51106 - "GET /uploads/enhanced_artisan_1b89d0ded3.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51119 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51120 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51120 - "GET /uploads/enhanced_artisan_c3a854d36c.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51125 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51127 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51127 - "GET /api/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51128 - "GET /api/seller/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51133 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51135 - "GET /api/auth/firebase-config HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51146 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51148 - "GET /css/styles.css?v=2.0.0 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51149 - "GET /js/api.js?v=2.0.1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51150 - "GET /js/firebase_auth.js?v=2.0.1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51152 - "GET /js/i18n.js?v=2.0.1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51146 - "GET /js/app.js?v=2.0.1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51151 - "GET /js/screens/auth.js?v=2.0.1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51148 - "GET /js/i18n.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51152 - "GET /js/api.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51146 - "GET /js/screens/auth.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51151 - "GET /js/firebase_auth.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51149 - "GET /js/screens/seller_dashboard.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51148 - "GET /js/screens/seller_orders.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51150 - "GET /js/screens/seller_add_product.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51152 - "GET /js/screens/seller_profile.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51149 - "GET /js/screens/buyer_cart_checkout.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51146 - "GET /js/screens/buyer_product_details.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51148 - "GET /js/screens/buyer_orders.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51151 - "GET /js/screens/buyer_marketplace.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51150 - "GET /js/screens/buyer_profile.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51152 - "GET /js/app.js?v=2.0.3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51146 - "GET /api/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51149 - "GET /api/seller/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51148 - "GET /uploads/enhanced_artisan_1b89d0ded3.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51151 - "GET /uploads/enhanced_artisan_7de914d58a.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51150 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51153 - "PUT /api/auth/profile HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51153 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51153 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51157 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51153 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51157 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51153 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51157 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51153 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51157 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51157 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51153 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51159 - "GET /api/seller/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51159 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51159 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51161 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51159 - "GET /uploads/enhanced_artisan_c3a854d36c.png HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:51161 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51161 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51161 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51164 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51165 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51163 - "GET /api/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51161 - "GET /api/products/22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51170 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51171 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51173 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51173 - "GET /static/images/avatars/buyer1.png HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51173 - "GET /api/orders/buyer HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51187 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51187 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/orders/buyer HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/products?seller_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/products?seller_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "POST /api/cart/add HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/products?seller_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/products?seller_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "POST /api/cart/add HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "DELETE /api/cart/item/21 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "DELETE /api/cart/item/22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/cart HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51188 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51199 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51199 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51199 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51189 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51199 - "GET /api/auth/me HTTP/1.1" 200 OK

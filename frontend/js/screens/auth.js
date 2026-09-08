@@ -7,6 +7,14 @@ function renderAuthScreen(container, mode = "login") {
   function update() {
     container.innerHTML = `
       <div class="min-h-full flex flex-col justify-center px-4 py-8 max-w-md mx-auto">
+        <!-- Top Back Navigation -->
+        <div class="mb-4">
+          <button id="btn-auth-back" type="button" class="inline-flex items-center gap-2 text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-full text-xs font-semibold transition shadow-xs cursor-pointer" title="Return to previous screen">
+            <i class="fa-solid fa-arrow-left text-xs"></i>
+            <span>${t("back") || "Back"}</span>
+          </button>
+        </div>
+
         <!-- Brand Header -->
         <div class="text-center mb-6">
           <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-700 text-amber-50 shadow-lg mb-3">
@@ -221,6 +229,22 @@ function renderAuthScreen(container, mode = "login") {
   }
 
   function bindEvents() {
+    // Back Navigation Button
+    const btnAuthBack = document.getElementById("btn-auth-back");
+    if (btnAuthBack) {
+      btnAuthBack.addEventListener("click", () => {
+        if (window.app && typeof window.app.goBack === "function") {
+          window.app.goBack();
+        } else if (window.history && window.history.length > 1) {
+          window.history.back();
+        } else if (window.app) {
+          window.app.navigate("buyer_marketplace");
+        } else {
+          window.location.href = "/";
+        }
+      });
+    }
+
     // Tab switching
     const tabLogin = document.getElementById("tab-login");
     const tabRegister = document.getElementById("tab-register");
@@ -281,7 +305,7 @@ function renderAuthScreen(container, mode = "login") {
           window.app.navigate("buyer_marketplace");
         }
       } catch (err) {
-        showToast(err.message, "error");
+        showToast(err.message || "Google authentication failed.", "error");
       }
     };
 
@@ -311,7 +335,7 @@ function renderAuthScreen(container, mode = "login") {
             window.app.navigate("buyer_marketplace");
           }
         } catch (err) {
-          showToast(err.message, "error");
+          showToast(err.message || "Invalid email or password.", "error");
         }
       });
     }
@@ -343,7 +367,7 @@ function renderAuthScreen(container, mode = "login") {
             window.app.navigate("buyer_marketplace");
           }
         } catch (err) {
-          showToast(err.message, "error");
+          showToast(err.message || "Registration could not be completed. Please check your details.", "error");
         }
       });
     }

@@ -60,10 +60,10 @@ class FirebaseAuthService {
       const config = await this.loadConfig();
       if (!config || !config.is_configured) {
         throw new Error(
-          "Firebase is not configured. Please provide FIREBASE_API_KEY and FIREBASE_PROJECT_ID (or FIREBASE_AUTH_DOMAIN) in .env file."
+          "Google Sign-In is not configured yet. Please configure FIREBASE_API_KEY, FIREBASE_AUTH_DOMAIN, and FIREBASE_PROJECT_ID in your environment variables (or Vercel Project Settings) and authorize your domain in Firebase Console."
         );
       }
-      throw new Error("Unable to initialize Firebase authentication.");
+      throw new Error("Unable to initialize Firebase authentication. Please verify your Firebase configuration.");
     }
 
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -85,15 +85,22 @@ class FirebaseAuthService {
       return authRes;
     } catch (err) {
       if (err.code === "auth/popup-closed-by-user") {
-        throw new Error("Sign-in cancelled: Google popup was closed.");
+        throw new Error("Google Sign-In cancelled: Popup was closed before completion.");
       } else if (err.code === "auth/cancelled-popup-request") {
         throw new Error("Only one popup request is allowed at a time.");
       } else if (err.code === "auth/popup-blocked") {
-        throw new Error("Sign-in popup was blocked by browser. Please allow popups for this site.");
+        throw new Error("Sign-in popup was blocked by your browser. Please allow popups for this site and try again.");
+      } else if (err.code === "auth/unauthorized-domain") {
+        const currentDomain = window.location.hostname || "your domain";
+        throw new Error(`Domain '${currentDomain}' is not authorized in Firebase. Add '${currentDomain}' in Firebase Console -> Authentication -> Settings -> Authorized Domains.`);
+      } else if (err.code === "auth/operation-not-allowed") {
+        throw new Error("Google provider is not enabled in Firebase. Please enable Google in Firebase Console -> Authentication -> Sign-in method.");
       } else if (err.code === "auth/network-request-failed") {
-        throw new Error("Network connection error during Google sign-in.");
+        throw new Error("Network connection error during Google sign-in. Please check your internet connection.");
       } else if (err.code === "auth/invalid-api-key" || err.code === "auth/api-key-not-valid") {
-        throw new Error("Invalid Firebase API Key. Please verify FIREBASE_API_KEY in .env.");
+        throw new Error("Invalid Firebase API Key. Please verify FIREBASE_API_KEY in your environment variables.");
+      } else if (err.code === "auth/configuration-not-found") {
+        throw new Error("Firebase Authentication configuration not found. Please check your Firebase project setup.");
       }
       throw err;
     }

@@ -36,6 +36,7 @@ const translations = {
     loginRequiredNotifications: "Please log in to view notifications.",
     loginRequiredArtisan: "Please log in as an artisan to use this feature.",
     switchAccount: "Please sign out, then log in with the account you want to use.",
+    back: "Back",
 
     // Navigation
     navHome: "Home",
@@ -210,6 +211,7 @@ const translations = {
     loginRequiredNotifications: "सूचनाएं देखने के लिए कृपया लॉग इन करें।",
     loginRequiredArtisan: "इस सुविधा का उपयोग करने के लिए कारीगर के रूप में लॉग इन करें।",
     switchAccount: "कृपया लॉग आउट करें, फिर जिस खाते का उपयोग करना है उससे लॉग इन करें।",
+    back: "वापस जाएं",
 
     // Navigation
     navHome: "होम",
@@ -383,6 +385,7 @@ const translations = {
     loginRequiredNotifications: "বিজ্ঞপ্তি দেখতে অনুগ্রহ করে লগ ইন করুন।",
     loginRequiredArtisan: "এই সুবিধাটি ব্যবহার করতে কারিগর হিসেবে লগ ইন করুন।",
     switchAccount: "অনুগ্রহ করে লগ আউট করুন, তারপর যে অ্যাকাউন্ট ব্যবহার করবেন তাতে লগ ইন করুন।",
+    back: "ফিরে যান",
 
     // Navigation
     navHome: "হোম",

@@ -118,10 +118,34 @@ class ApiClient {
           }
         }
 
-        const errorMsg =
-          data.detail ||
-          data.message ||
-          "An unexpected error occurred.";
+        let errorMsg = "";
+        if (typeof data.detail === "string" && data.detail.trim()) {
+          errorMsg = data.detail.trim();
+        } else if (Array.isArray(data.detail) && data.detail.length > 0) {
+          errorMsg = data.detail
+            .map(err => {
+              const field = Array.isArray(err.loc) && err.loc.length > 0 ? err.loc[err.loc.length - 1] : "";
+              const fieldLabel = (field && field !== "body") ? `${field}: ` : "";
+              return `${fieldLabel}${err.msg || err.message || "Invalid value"}`;
+            })
+            .join("; ");
+        } else if (typeof data.message === "string" && data.message.trim()) {
+          errorMsg = data.message.trim();
+        } else if (response.status === 400) {
+          errorMsg = "Invalid request data. Please check your input.";
+        } else if (response.status === 401) {
+          errorMsg = "Authentication required. Please log in.";
+        } else if (response.status === 403) {
+          errorMsg = "Access forbidden (403).";
+        } else if (response.status === 404) {
+          errorMsg = "Requested resource or endpoint not found (404).";
+        } else if (response.status === 500) {
+          errorMsg = "Internal server error (500). Please check server logs.";
+        } else if (response.status === 502 || response.status === 503 || response.status === 504) {
+          errorMsg = "Server temporarily unavailable. Please try again in a few moments.";
+        } else {
+          errorMsg = `Request failed with status ${response.status}.`;
+        }
 
         throw new Error(errorMsg);
       }
@@ -132,6 +156,10 @@ class ApiClient {
         `API Error on [${options.method || "GET"}] ${endpoint}:`,
         err
       );
+
+      if (err instanceof TypeError && (err.message || "").toLowerCase().includes("fetch")) {
+        throw new Error("Unable to connect to the backend server. Please verify your internet connection.");
+      }
 
       throw err;
     }

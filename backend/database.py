@@ -3,9 +3,17 @@ import json
 import hashlib
 import os
 from datetime import datetime
-from backend.config import DB_PATH
+from backend.config import DB_PATH, BASE_DIR
 
 def get_db():
+    if not DB_PATH.exists():
+        template_db = BASE_DIR / "artisan_marketplace.db"
+        if template_db.exists():
+            import shutil
+            try:
+                shutil.copy2(template_db, DB_PATH)
+            except Exception as e:
+                print(f"Warning: Failed to copy database template: {e}")
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
