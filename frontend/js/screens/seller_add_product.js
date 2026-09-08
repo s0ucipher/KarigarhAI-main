@@ -565,7 +565,7 @@ function renderSellerAddProduct(container) {
           };
 
           if (!api.token) {
-            showToast("Please log in as an artisan to publish crafts", "info");
+            showToast(t("loginRequiredArtisan"), "info");
             window.app.navigate("auth", { mode: "login" });
             return;
           }
@@ -595,7 +595,7 @@ function renderSellerAddProduct(container) {
 
   async function processUploadedImage(file) {
     if (!api.token) {
-      showToast("Please log in as an artisan to use AI craft listing", "info");
+      showToast(t("loginRequiredArtisan"), "info");
       window.app.navigate("auth", { mode: "login" });
       return;
     }

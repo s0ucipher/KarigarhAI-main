@@ -335,7 +335,7 @@ async function renderBuyerCartCheckout(container, params = {}) {
       };
 
       if (!api.token) {
-        showToast("Please log in to place your order", "info");
+        showToast(t("loginRequiredOrder"), "info");
         window.app.navigate("auth", { mode: "login" });
         return;
       }

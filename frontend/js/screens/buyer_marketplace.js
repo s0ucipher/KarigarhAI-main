@@ -255,7 +255,7 @@ async function renderBuyerMarketplace(container) {
           e.stopPropagation();
           const pid = btn.getAttribute("data-product-id");
           if (!api.token) {
-            showToast("Please log in to add items to your cart", "info");
+            showToast(t("loginRequiredCart"), "info");
             window.app.navigate("auth", { mode: "login" });
             return;
           }

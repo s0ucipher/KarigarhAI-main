@@ -67,24 +67,11 @@ class App {
   }
 
   async switchUserMode(targetRole) {
-    if (targetRole === "seller") {
-      try {
-        await api.login("ramesh@kalasetu.ai", "artisan123");
-        showToast("Switched to Artisan Seller Mode", "success");
-        this.navigate("seller_dashboard");
-      } catch (err) {
-        showToast("Please log in with an artisan account", "info");
-        this.navigate("auth", { mode: "login" });
-      }
-    } else {
-      try {
-        await api.login("priya@buyer.in", "artisan123");
-        showToast("Switched to Buyer Mode", "success");
-        this.navigate("buyer_marketplace");
-      } catch (err) {
-        this.navigate("buyer_marketplace");
-      }
-    }
+    // Switching roles must never sign in as a hard-coded account. The user
+    // can sign out from their profile and then authenticate with the desired
+    // account; guest browsing remains available from the marketplace.
+    showToast(t("switchAccount"), "info");
+    this.navigate(targetRole === "seller" ? "auth" : "buyer_marketplace", targetRole === "seller" ? { mode: "login" } : {});
   }
 
   renderTopBar() {
@@ -350,7 +337,7 @@ class App {
 
   async openNotificationsModal() {
     if (!api.token) {
-      showToast("Please log in to view notifications", "info");
+      showToast(t("loginRequiredNotifications"), "info");
       this.navigate("auth", { mode: "login" });
       return;
     }

@@ -183,7 +183,7 @@ async function renderBuyerProductDetails(container, params = {}) {
     // Add to Cart
     document.getElementById("btn-add-to-cart-detail")?.addEventListener("click", async () => {
       if (!api.token) {
-        showToast("Please log in to add items to your cart", "info");
+        showToast(t("loginRequiredCart"), "info");
         window.app.navigate("auth", { mode: "login" });
         return;
       }

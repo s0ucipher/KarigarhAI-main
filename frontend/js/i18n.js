@@ -31,6 +31,11 @@ const translations = {
     switchToBuyer: "Switch to Buyer",
     switchToSeller: "Switch to Seller",
     guestDemo: "Quick Demo Logins",
+    loginRequiredCart: "Please log in to add items to your cart.",
+    loginRequiredOrder: "Please log in to place your order.",
+    loginRequiredNotifications: "Please log in to view notifications.",
+    loginRequiredArtisan: "Please log in as an artisan to use this feature.",
+    switchAccount: "Please sign out, then log in with the account you want to use.",
 
     // Navigation
     navHome: "Home",
@@ -200,6 +205,11 @@ const translations = {
     switchToBuyer: "खरीदार मोड पर जाएं",
     switchToSeller: "कारीगर मोड पर जाएं",
     guestDemo: "त्वरित डेमो लॉगिन",
+    loginRequiredCart: "कार्ट में आइटम जोड़ने के लिए कृपया लॉग इन करें।",
+    loginRequiredOrder: "ऑर्डर देने के लिए कृपया लॉग इन करें।",
+    loginRequiredNotifications: "सूचनाएं देखने के लिए कृपया लॉग इन करें।",
+    loginRequiredArtisan: "इस सुविधा का उपयोग करने के लिए कारीगर के रूप में लॉग इन करें।",
+    switchAccount: "कृपया लॉग आउट करें, फिर जिस खाते का उपयोग करना है उससे लॉग इन करें।",
 
     // Navigation
     navHome: "होम",
@@ -368,6 +378,11 @@ const translations = {
     switchToBuyer: "ক্রেতা মোডে যান",
     switchToSeller: "কারিগর মোডে যান",
     guestDemo: "কুইক ডেমো লগইন",
+    loginRequiredCart: "কার্টে পণ্য যোগ করতে অনুগ্রহ করে লগ ইন করুন।",
+    loginRequiredOrder: "অর্ডার করতে অনুগ্রহ করে লগ ইন করুন।",
+    loginRequiredNotifications: "বিজ্ঞপ্তি দেখতে অনুগ্রহ করে লগ ইন করুন।",
+    loginRequiredArtisan: "এই সুবিধাটি ব্যবহার করতে কারিগর হিসেবে লগ ইন করুন।",
+    switchAccount: "অনুগ্রহ করে লগ আউট করুন, তারপর যে অ্যাকাউন্ট ব্যবহার করবেন তাতে লগ ইন করুন।",
 
     // Navigation
     navHome: "হোম",

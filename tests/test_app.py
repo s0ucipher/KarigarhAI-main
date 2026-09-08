@@ -33,6 +33,30 @@ class TestKalaSetuAI(unittest.TestCase):
         self.assertIn("pottery-ceramics", slugs)
         self.assertIn("metal-brass", slugs)
 
+    def test_02a_guest_can_browse_public_marketplace_data(self):
+        """Browsing endpoints stay public; only account actions require a token."""
+        products_res = self.client.get("/api/products")
+        self.assertEqual(products_res.status_code, 200)
+        products = products_res.json()["products"]
+        self.assertGreater(len(products), 0)
+
+        product_id = products[0]["id"]
+        detail_res = self.client.get(f"/api/products/{product_id}")
+        self.assertEqual(detail_res.status_code, 200)
+        self.assertEqual(detail_res.json()["product"]["id"], product_id)
+
+        artisan_id = detail_res.json()["product"]["seller_id"]
+        artisan_res = self.client.get(f"/api/seller/artisan/{artisan_id}")
+        self.assertEqual(artisan_res.status_code, 200)
+        self.assertEqual(artisan_res.json()["artisan"]["id"], artisan_id)
+
+        protected_res = self.client.get("/api/cart")
+        self.assertEqual(protected_res.status_code, 401)
+        self.assertEqual(
+            protected_res.json()["detail"],
+            "Authentication required. Please log in."
+        )
+
     def test_03_auth_login_seeded_users(self):
         # Test login as artisan Ramesh
         res = self.client.post("/api/auth/login", json={
@@ -259,4 +283,3 @@ class TestKalaSetuAI(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

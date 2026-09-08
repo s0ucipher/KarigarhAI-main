@@ -11,12 +11,20 @@ class ApiClient {
 
     try {
       this.user = (this.token && savedUser) ? JSON.parse(savedUser) : null;
-      if (!this.token && savedUser) {
+      // A token without its user record is not a usable session. Treat it as
+      // a guest rather than allowing protected screens to make requests with
+      // stale credentials.
+      if (!this.token || !this.user) {
+        this.token = null;
+        this.user = null;
+        localStorage.removeItem("kalasetu_token");
         localStorage.removeItem("kalasetu_user");
       }
     } catch (error) {
       console.log("Invalid saved user data. Clearing it.");
+      localStorage.removeItem("kalasetu_token");
       localStorage.removeItem("kalasetu_user");
+      this.token = null;
       this.user = null;
     }
   }
