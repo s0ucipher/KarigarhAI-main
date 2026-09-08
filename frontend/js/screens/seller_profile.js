@@ -1,6 +1,58 @@
-// Seller / Artisan Profile Screen
-
 async function renderSellerProfile(container) {
+  if (!api.token || (api.user && api.user.role !== "seller")) {
+    container.innerHTML = `
+      <div class="p-4 space-y-4 max-w-lg mx-auto pb-24">
+        <div class="flex items-center justify-between">
+          <h1 class="text-base font-black text-stone-900 tracking-tight">
+            ${t("navProfile")}
+          </h1>
+          <button id="btn-seller-prof-login" class="text-xs font-bold text-amber-800 hover:text-amber-900 flex items-center gap-1">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> ${t("login")}
+          </button>
+        </div>
+
+        <div class="bg-white border border-stone-200 rounded-3xl p-5 shadow-xs text-center">
+          <div class="w-20 h-20 rounded-full bg-stone-100 border-4 border-stone-200 flex items-center justify-center text-stone-400 text-3xl mx-auto mb-3">
+            <i class="fa-solid fa-hammer"></i>
+          </div>
+          <h2 class="text-base font-black text-stone-900">Artisan Studio Profile</h2>
+          <span class="inline-block bg-amber-100 text-amber-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full mt-1">
+            Artisan Account Required
+          </span>
+          <p class="text-xs text-stone-500 mt-2 max-w-xs mx-auto">
+            Please log in with an artisan account to edit your craftsman bio, specialization, and village location.
+          </p>
+          <div class="mt-4 flex items-center justify-center gap-2">
+            <button id="btn-login-artisan-prof" class="bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-5 rounded-xl text-xs shadow transition flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-right-to-bracket text-[11px]"></i> ${t("login")} as Artisan
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white border border-stone-200 rounded-2xl p-2 shadow-xs divide-y divide-stone-100">
+          <button id="btn-prof-to-market" class="w-full flex items-center justify-between p-3 hover:bg-stone-50 text-left rounded-xl">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-store text-amber-700 text-sm"></i>
+              <span class="text-xs font-bold text-stone-800">${t("navMarketplace")}</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-stone-400 text-xs"></i>
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById("btn-seller-prof-login")?.addEventListener("click", () => {
+      window.app.navigate("auth", { mode: "login" });
+    });
+    document.getElementById("btn-login-artisan-prof")?.addEventListener("click", () => {
+      window.app.navigate("auth", { mode: "login" });
+    });
+    document.getElementById("btn-prof-to-market")?.addEventListener("click", () => {
+      window.app.navigate("buyer_marketplace");
+    });
+    return;
+  }
+
   try {
     const user = await api.getMe();
     const profile = user.seller_profile || {};
@@ -150,6 +202,11 @@ async function renderSellerProfile(container) {
     });
 
   } catch (err) {
+    if (err.message && err.message.toLowerCase().includes("authentication")) {
+      api.clearAuth();
+      renderSellerProfile(container);
+      return;
+    }
     container.innerHTML = `<div class="p-6 text-center text-rose-600">${err.message}</div>`;
   }
 }

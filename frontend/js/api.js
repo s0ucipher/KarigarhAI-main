@@ -10,7 +10,10 @@ class ApiClient {
     const savedUser = localStorage.getItem("kalasetu_user");
 
     try {
-      this.user = savedUser ? JSON.parse(savedUser) : null;
+      this.user = (this.token && savedUser) ? JSON.parse(savedUser) : null;
+      if (!this.token && savedUser) {
+        localStorage.removeItem("kalasetu_user");
+      }
     } catch (error) {
       console.log("Invalid saved user data. Clearing it.");
       localStorage.removeItem("kalasetu_user");

@@ -254,6 +254,11 @@ async function renderBuyerMarketplace(container) {
         btn.addEventListener("click", async (e) => {
           e.stopPropagation();
           const pid = btn.getAttribute("data-product-id");
+          if (!api.token) {
+            showToast("Please log in to add items to your cart", "info");
+            window.app.navigate("auth", { mode: "login" });
+            return;
+          }
           try {
             await api.addToCart(parseInt(pid), 1);
             showToast("Added to cart! 🛍️", "success");
@@ -268,6 +273,11 @@ async function renderBuyerMarketplace(container) {
     renderView();
 
   } catch (err) {
+    if (err.message && err.message.toLowerCase().includes("authentication")) {
+      api.clearAuth();
+      renderBuyerMarketplace(container);
+      return;
+    }
     container.innerHTML = `
       <div class="p-6 text-center text-rose-600">
         <p class="text-xs font-bold">Failed to load marketplace: ${err.message}</p>

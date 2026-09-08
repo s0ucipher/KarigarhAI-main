@@ -13,7 +13,7 @@ class App {
   async init() {
     // Determine initial screen based on login state
     if (!api.token || !api.user) {
-      // Default to guest marketplace or auth
+      // Default to guest marketplace
       this.currentScreen = "buyer_marketplace";
     } else {
       if (api.user.role === "seller") {
@@ -73,7 +73,8 @@ class App {
         showToast("Switched to Artisan Seller Mode", "success");
         this.navigate("seller_dashboard");
       } catch (err) {
-        showToast(err.message, "error");
+        showToast("Please log in with an artisan account", "info");
+        this.navigate("auth", { mode: "login" });
       }
     } else {
       try {
@@ -81,7 +82,7 @@ class App {
         showToast("Switched to Buyer Mode", "success");
         this.navigate("buyer_marketplace");
       } catch (err) {
-        showToast(err.message, "error");
+        this.navigate("buyer_marketplace");
       }
     }
   }
@@ -110,12 +111,19 @@ class App {
 
         <!-- Right Controls: Role Switcher & Notifications & Language -->
         <div class="flex items-center gap-1.5">
-          <!-- Role Switcher Quick Pill -->
-          <button id="btn-top-role-toggle" class="px-2.5 py-1 rounded-full text-[10px] font-black border transition shadow-2xs flex items-center gap-1 ${isSeller ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-stone-100 text-stone-800 border-stone-300'}">
-            <i class="fa-solid ${isSeller ? 'fa-hammer text-amber-700' : 'fa-bag-shopping text-emerald-700'}"></i>
-            <span>${isSeller ? 'Artisan' : 'Buyer'}</span>
-            <i class="fa-solid fa-repeat text-[8px] opacity-60"></i>
-          </button>
+          <!-- Role Switcher or Log In button -->
+          ${api.token && api.user ? `
+            <button id="btn-top-role-toggle" class="px-2.5 py-1 rounded-full text-[10px] font-black border transition shadow-2xs flex items-center gap-1 ${isSeller ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-stone-100 text-stone-800 border-stone-300'}">
+              <i class="fa-solid ${isSeller ? 'fa-hammer text-amber-700' : 'fa-bag-shopping text-emerald-700'}"></i>
+              <span>${isSeller ? 'Artisan' : 'Buyer'}</span>
+              <i class="fa-solid fa-repeat text-[8px] opacity-60"></i>
+            </button>
+          ` : `
+            <button id="btn-top-login" class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-700 hover:bg-amber-800 text-white transition shadow-2xs flex items-center gap-1">
+              <i class="fa-solid fa-arrow-right-to-bracket text-[9px]"></i>
+              <span>${t("login")}</span>
+            </button>
+          `}
 
           <!-- Language Dropdown -->
           <div class="relative">
@@ -146,9 +154,12 @@ class App {
       else this.navigate("buyer_marketplace");
     });
 
-    // Role toggle
+    // Role toggle or Login
     document.getElementById("btn-top-role-toggle")?.addEventListener("click", () => {
       this.switchUserMode(isSeller ? "buyer" : "seller");
+    });
+    document.getElementById("btn-top-login")?.addEventListener("click", () => {
+      this.navigate("auth", { mode: "login" });
     });
 
     // Language dropdown toggle
@@ -338,6 +349,11 @@ class App {
   }
 
   async openNotificationsModal() {
+    if (!api.token) {
+      showToast("Please log in to view notifications", "info");
+      this.navigate("auth", { mode: "login" });
+      return;
+    }
     try {
       const res = await api.getNotifications();
       const notifs = res.notifications || [];

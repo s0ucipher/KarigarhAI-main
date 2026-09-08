@@ -1,6 +1,50 @@
 // Seller / Artisan Order Management Screen
 
 async function renderSellerOrders(container) {
+  if (!api.token || (api.user && api.user.role !== "seller")) {
+    container.innerHTML = `
+      <div class="p-4 space-y-4 max-w-lg mx-auto pb-24">
+        <div class="flex items-center justify-between">
+          <h1 class="text-base font-black text-stone-900 tracking-tight flex items-center gap-2">
+            <i class="fa-solid fa-boxes-packing text-amber-700"></i> ${t("navOrders")}
+          </h1>
+          <button id="btn-orders-market" class="text-xs font-bold text-amber-800 hover:underline">
+            ${t("navMarketplace")}
+          </button>
+        </div>
+
+        <div class="bg-white border border-stone-200 rounded-3xl p-8 text-center text-stone-500">
+          <div class="w-14 h-14 bg-amber-50 text-amber-700 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
+            <i class="fa-solid fa-boxes-packing"></i>
+          </div>
+          <h3 class="text-sm font-bold text-stone-800">Artisan Order Management</h3>
+          <p class="text-xs text-stone-400 mt-1 max-w-xs mx-auto">
+            Please log in with an artisan account to view and fulfill your craft orders.
+          </p>
+          <div class="mt-5 flex items-center justify-center gap-2">
+            <button id="btn-seller-login" class="bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow transition flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-right-to-bracket text-[11px]"></i> ${t("login")} as Artisan
+            </button>
+            <button id="btn-orders-explore" class="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-2.5 px-4 rounded-xl text-xs transition">
+              ${t("navMarketplace")}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById("btn-seller-login")?.addEventListener("click", () => {
+      window.app.navigate("auth", { mode: "login" });
+    });
+    document.getElementById("btn-orders-market")?.addEventListener("click", () => {
+      window.app.navigate("buyer_marketplace");
+    });
+    document.getElementById("btn-orders-explore")?.addEventListener("click", () => {
+      window.app.navigate("buyer_marketplace");
+    });
+    return;
+  }
+
   container.innerHTML = `
     <div class="p-6 text-center text-stone-500">
       <i class="fa-solid fa-spinner fa-spin text-3xl text-amber-700"></i>
@@ -168,6 +212,11 @@ async function renderSellerOrders(container) {
     renderList();
 
   } catch (err) {
+    if (err.message && err.message.toLowerCase().includes("authentication")) {
+      api.clearAuth();
+      renderSellerOrders(container);
+      return;
+    }
     container.innerHTML = `
       <div class="p-6 text-center text-rose-600">
         <p class="text-xs font-bold">Failed to load orders: ${err.message}</p>

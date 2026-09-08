@@ -182,6 +182,11 @@ async function renderBuyerProductDetails(container, params = {}) {
 
     // Add to Cart
     document.getElementById("btn-add-to-cart-detail")?.addEventListener("click", async () => {
+      if (!api.token) {
+        showToast("Please log in to add items to your cart", "info");
+        window.app.navigate("auth", { mode: "login" });
+        return;
+      }
       try {
         await api.addToCart(p.id, 1);
         showToast("Added to your shopping cart!", "success");
@@ -205,6 +210,11 @@ async function renderBuyerProductDetails(container, params = {}) {
     });
 
   } catch (err) {
+    if (err.message && err.message.toLowerCase().includes("authentication")) {
+      api.clearAuth();
+      renderBuyerProductDetails(container, params);
+      return;
+    }
     container.innerHTML = `<div class="p-6 text-center text-rose-600">${err.message}</div>`;
   }
 }

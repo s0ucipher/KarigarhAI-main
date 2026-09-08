@@ -564,6 +564,12 @@ function renderSellerAddProduct(container) {
             }
           };
 
+          if (!api.token) {
+            showToast("Please log in as an artisan to publish crafts", "info");
+            window.app.navigate("auth", { mode: "login" });
+            return;
+          }
+
           try {
             showToast("Publishing to marketplace...", "info");
             await api.createProduct(payload);
@@ -588,6 +594,12 @@ function renderSellerAddProduct(container) {
   }
 
   async function processUploadedImage(file) {
+    if (!api.token) {
+      showToast("Please log in as an artisan to use AI craft listing", "info");
+      window.app.navigate("auth", { mode: "login" });
+      return;
+    }
+
     try {
       showLoadingModal("AI Enhancing Your Photo...", "Balancing lighting, sharpening textures, and generating marketplace details...");
       const formData = new FormData();

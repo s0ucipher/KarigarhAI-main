@@ -36,6 +36,48 @@ async function renderBuyerCartCheckout(container, params = {}) {
       subtotal = prod.price;
       deliveryFee = subtotal >= 999 ? 0 : 70;
       total = subtotal + deliveryFee;
+    } else if (!api.token) {
+      // Guest cart without direct product
+      container.innerHTML = `
+        <div class="p-4 space-y-4 max-w-lg mx-auto pb-28">
+          <div class="flex items-center justify-between">
+            <h1 class="text-base font-black text-stone-900 tracking-tight flex items-center gap-2">
+              <i class="fa-solid fa-cart-shopping text-amber-700"></i> ${t("navCart")}
+            </h1>
+            <button id="btn-shop-more-guest" class="text-xs font-bold text-amber-800 hover:underline">
+              ${t("navMarketplace")}
+            </button>
+          </div>
+
+          <div class="bg-white border border-stone-200 rounded-3xl p-8 text-center text-stone-500">
+            <div class="w-14 h-14 bg-amber-50 text-amber-700 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
+              <i class="fa-solid fa-cart-shopping"></i>
+            </div>
+            <h3 class="text-sm font-bold text-stone-800">Your Shopping Cart</h3>
+            <p class="text-xs text-stone-400 mt-1 max-w-xs mx-auto">
+              Please log in to view your saved items, or discover authentic handmade crafts.
+            </p>
+            <div class="mt-5 flex items-center justify-center gap-2">
+              <button id="btn-cart-login" class="bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow transition flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-right-to-bracket text-[11px]"></i> ${t("login")}
+              </button>
+              <button id="btn-cart-shop" class="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-2.5 px-4 rounded-xl text-xs transition">
+                ${t("navMarketplace")}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById("btn-cart-login")?.addEventListener("click", () => {
+        window.app.navigate("auth", { mode: "login" });
+      });
+      document.getElementById("btn-shop-more-guest")?.addEventListener("click", () => {
+        window.app.navigate("buyer_marketplace");
+      });
+      document.getElementById("btn-cart-shop")?.addEventListener("click", () => {
+        window.app.navigate("buyer_marketplace");
+      });
+      return;
     } else {
       const cartData = await api.getCart();
       items = cartData.items || [];
@@ -292,6 +334,12 @@ async function renderBuyerCartCheckout(container, params = {}) {
         direct_quantity: directProductId ? 1 : null
       };
 
+      if (!api.token) {
+        showToast("Please log in to place your order", "info");
+        window.app.navigate("auth", { mode: "login" });
+        return;
+      }
+
       try {
         showToast("Submitting your handmade order...", "info");
         const res = await api.checkout(orderPayload);
@@ -304,6 +352,11 @@ async function renderBuyerCartCheckout(container, params = {}) {
     });
 
   } catch (err) {
+    if (err.message && err.message.toLowerCase().includes("authentication")) {
+      api.clearAuth();
+      renderBuyerCartCheckout(container, params);
+      return;
+    }
     container.innerHTML = `<div class="p-6 text-center text-rose-600">${err.message}</div>`;
   }
 }

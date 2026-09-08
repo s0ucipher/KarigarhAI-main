@@ -1,6 +1,80 @@
-// Buyer Profile Screen
-
 async function renderBuyerProfile(container) {
+  if (!api.token) {
+    container.innerHTML = `
+      <div class="p-4 space-y-4 max-w-lg mx-auto pb-24">
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+          <h1 class="text-base font-black text-stone-900 tracking-tight">
+            ${t("navProfile")}
+          </h1>
+          <button id="btn-guest-login" class="text-xs font-bold text-amber-800 hover:text-amber-900 flex items-center gap-1">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> ${t("login")}
+          </button>
+        </div>
+
+        <!-- Guest Profile Card -->
+        <div class="bg-white border border-stone-200 rounded-3xl p-5 shadow-xs text-center">
+          <div class="w-20 h-20 rounded-full bg-stone-100 border-4 border-stone-200 flex items-center justify-center text-stone-400 text-3xl mx-auto mb-3 shadow-xs">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <h2 class="text-base font-black text-stone-900">Guest Explorer</h2>
+          <span class="inline-block bg-stone-100 text-stone-600 text-[10px] font-bold px-2.5 py-0.5 rounded-full mt-1">
+            Browsing Mode
+          </span>
+          <p class="text-xs text-stone-500 mt-2 max-w-xs mx-auto">
+            Log in to save favorite crafts, track orders, and connect with Indian artisans.
+          </p>
+          <div class="mt-4 flex items-center justify-center gap-2">
+            <button id="btn-login-profile" class="bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-5 rounded-xl text-xs shadow transition flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-right-to-bracket text-[11px]"></i> ${t("login")} / ${t("signup")}
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Switcher to Artisan Experience -->
+        <div class="bg-amber-900 rounded-2xl p-4 text-white flex items-center justify-between shadow-md">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-lg text-amber-300">
+              <i class="fa-solid fa-hands-holding-circle"></i>
+            </div>
+            <div>
+              <div class="text-xs font-black">Become an Artisan Seller</div>
+              <div class="text-[10px] text-amber-200">List and sell handmade crafts with AI</div>
+            </div>
+          </div>
+          <button id="btn-quick-switch-artisan" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-2 px-3 rounded-xl shadow-xs transition">
+            Join
+          </button>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="bg-white border border-stone-200 rounded-2xl p-2 shadow-xs divide-y divide-stone-100">
+          <button id="btn-goto-marketplace" class="w-full flex items-center justify-between p-3 hover:bg-stone-50 text-left rounded-xl">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-store text-amber-700 text-sm"></i>
+              <span class="text-xs font-bold text-stone-800">${t("navMarketplace")}</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-stone-400 text-xs"></i>
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById("btn-guest-login")?.addEventListener("click", () => {
+      window.app.navigate("auth", { mode: "login" });
+    });
+    document.getElementById("btn-login-profile")?.addEventListener("click", () => {
+      window.app.navigate("auth", { mode: "login" });
+    });
+    document.getElementById("btn-quick-switch-artisan")?.addEventListener("click", () => {
+      window.app.navigate("auth", { mode: "register" });
+    });
+    document.getElementById("btn-goto-marketplace")?.addEventListener("click", () => {
+      window.app.navigate("buyer_marketplace");
+    });
+    return;
+  }
+
   try {
     const user = await api.getMe();
     const buyerProfile = user.buyer_profile || {};
@@ -145,6 +219,11 @@ async function renderBuyerProfile(container) {
     });
 
   } catch (err) {
+    if (err.message && err.message.toLowerCase().includes("authentication")) {
+      api.clearAuth();
+      renderBuyerProfile(container);
+      return;
+    }
     container.innerHTML = `<div class="p-6 text-center text-rose-600">${err.message}</div>`;
   }
 }

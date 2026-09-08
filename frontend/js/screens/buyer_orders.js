@@ -1,12 +1,45 @@
-// Buyer Orders & Visual Tracking Screen
-
 async function renderBuyerOrders(container) {
-  container.innerHTML = `
-    <div class="p-6 text-center text-stone-500">
-      <i class="fa-solid fa-spinner fa-spin text-3xl text-amber-700"></i>
-      <p class="text-xs mt-2 font-medium">Tracking your handmade orders...</p>
-    </div>
-  `;
+  if (!api.token) {
+    container.innerHTML = `
+      <div class="p-4 space-y-4 max-w-lg mx-auto pb-24">
+        <div class="flex items-center justify-between">
+          <h1 class="text-base font-black text-stone-900 tracking-tight flex items-center gap-2">
+            <i class="fa-solid fa-box text-amber-700"></i> ${t("navOrders")}
+          </h1>
+          <button id="btn-shop-more-guest" class="text-xs font-bold text-amber-800 hover:underline">
+            ${t("navMarketplace")}
+          </button>
+        </div>
+
+        <div class="bg-white border border-stone-200 rounded-3xl p-8 text-center text-stone-500">
+          <div class="w-14 h-14 bg-amber-50 text-amber-700 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
+            <i class="fa-solid fa-box-open"></i>
+          </div>
+          <h3 class="text-sm font-bold text-stone-800">Track Your Handmade Orders</h3>
+          <p class="text-xs text-stone-400 mt-1 max-w-xs mx-auto">Please log in to view your order history and live craft tracking.</p>
+          <div class="mt-5 flex items-center justify-center gap-2">
+            <button id="btn-order-login" class="bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow transition flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-right-to-bracket text-[11px]"></i> ${t("login")}
+            </button>
+            <button id="btn-start-shopping-guest" class="bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold py-2.5 px-4 rounded-xl text-xs transition">
+              ${t("navMarketplace")}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById("btn-order-login")?.addEventListener("click", () => {
+      window.app.navigate("auth", { mode: "login" });
+    });
+    document.getElementById("btn-shop-more-guest")?.addEventListener("click", () => {
+      window.app.navigate("buyer_marketplace");
+    });
+    document.getElementById("btn-start-shopping-guest")?.addEventListener("click", () => {
+      window.app.navigate("buyer_marketplace");
+    });
+    return;
+  }
 
   try {
     const res = await api.getBuyerOrders();
@@ -153,6 +186,11 @@ async function renderBuyerOrders(container) {
     });
 
   } catch (err) {
+    if (err.message && err.message.toLowerCase().includes("authentication")) {
+      api.clearAuth();
+      renderBuyerOrders(container);
+      return;
+    }
     container.innerHTML = `<div class="p-6 text-center text-rose-600">${err.message}</div>`;
   }
 }
