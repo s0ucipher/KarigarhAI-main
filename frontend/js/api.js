@@ -155,6 +155,23 @@ class ApiClient {
     return res;
   }
 
+  async getFirebaseConfig() {
+    return await this.request("/api/auth/firebase-config");
+  }
+
+  async googleLogin(idToken) {
+    const res = await this.request("/api/auth/google", {
+      method: "POST",
+      body: {
+        id_token: idToken
+      }
+    });
+
+    this.setAuth(res.access_token, res.user);
+
+    return res;
+  }
+
   async getMe() {
     const res = await this.request("/api/auth/me");
 

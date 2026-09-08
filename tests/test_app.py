@@ -144,6 +144,13 @@ class TestKalaSetuAI(unittest.TestCase):
         })
         buyer_token = login_buyer.json()["access_token"]
 
+        # Ensure product 1 has sufficient stock for test
+        from backend.database import get_db
+        conn = get_db()
+        conn.execute("UPDATE products SET quantity = 10, is_available = 1 WHERE id = 1")
+        conn.commit()
+        conn.close()
+
         # Add product 1 (Terracotta Vase) to cart
         add_res = self.client.post(
             "/api/cart/add",
@@ -211,5 +218,45 @@ class TestKalaSetuAI(unittest.TestCase):
         notifs = notifs_res.json()["notifications"]
         self.assertTrue(any("Accepted" in n["title"] or "Order" in n["title"] for n in notifs))
 
+    def test_08_firebase_config(self):
+        res = self.client.get("/api/auth/firebase-config")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn("apiKey", data)
+        self.assertIn("projectId", data)
+        self.assertIn("is_configured", data)
+
+    def test_09_google_auth(self):
+        from unittest.mock import patch
+        # Test invalid token
+        res_fail = self.client.post("/api/auth/google", json={"id_token": "invalid-token-12345"})
+        self.assertEqual(res_fail.status_code, 401)
+
+        # Test valid token with mocked token verification
+        mock_payload = {
+            "email": "testgoogleuser@artisan.test",
+            "name": "Arun Craft Lover",
+            "picture": "https://lh3.googleusercontent.com/test-photo.jpg",
+            "sub": "google-sub-123456"
+        }
+        with patch("backend.routers.auth_router.verify_google_firebase_token", return_value=mock_payload):
+            res = self.client.post("/api/auth/google", json={"id_token": "valid-mock-token"})
+            self.assertEqual(res.status_code, 200)
+            data = res.json()
+            self.assertIn("access_token", data)
+            self.assertEqual(data["user"]["email"], "testgoogleuser@artisan.test")
+            self.assertEqual(data["user"]["role"], "buyer")
+
+            token = data["access_token"]
+            me_res = self.client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+            self.assertEqual(me_res.status_code, 200)
+            self.assertEqual(me_res.json()["user"]["email"], "testgoogleuser@artisan.test")
+
+            # Subsequent login with same Google account logs in existing user
+            res_repeat = self.client.post("/api/auth/google", json={"id_token": "valid-mock-token"})
+            self.assertEqual(res_repeat.status_code, 200)
+            self.assertEqual(res_repeat.json()["user"]["id"], data["user"]["id"])
+
 if __name__ == "__main__":
     unittest.main()
+
