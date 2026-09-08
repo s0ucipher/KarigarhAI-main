@@ -33,10 +33,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize database on startup
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+# Global exception handler to prevent unformatted 500 server crashes
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
+    tb = traceback.format_exc()
+    print(f"Unhandled error on {request.method} {request.url.path}: {tb}")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": f"Internal server error: {str(exc)}",
+            "error_type": type(exc).__name__
+        }
+    )
+
+# Initialize database immediately on module load for serverless environments
+try:
+    init_db()
+except Exception as e:
+    print(f"Startup DB init warning: {e}")
+
 @app.on_event("startup")
 def on_startup():
-    init_db()
+    try:
+        init_db()
+    except Exception as e:
+        print(f"Startup event DB init warning: {e}")
 
 # Mount API routers
 app.include_router(auth_router.router)

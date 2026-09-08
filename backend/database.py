@@ -5,18 +5,38 @@ import os
 from datetime import datetime
 from backend.config import DB_PATH, BASE_DIR
 
-def get_db():
+def ensure_template_copied():
     if not DB_PATH.exists():
-        template_db = BASE_DIR / "artisan_marketplace.db"
-        if template_db.exists():
-            import shutil
-            try:
-                shutil.copy2(template_db, DB_PATH)
-            except Exception as e:
-                print(f"Warning: Failed to copy database template: {e}")
+        candidate_paths = [
+            BASE_DIR / "artisan_marketplace.db",
+            Path.cwd() / "artisan_marketplace.db",
+            Path(__file__).resolve().parent / "artisan_marketplace.db",
+            Path(__file__).resolve().parent.parent / "artisan_marketplace.db",
+            Path("/var/task/artisan_marketplace.db"),
+            Path("/vercel/path0/artisan_marketplace.db"),
+        ]
+        for cand in candidate_paths:
+            if cand.exists() and cand.is_file() and cand.stat().st_size > 0:
+                import shutil
+                try:
+                    shutil.copy2(cand, DB_PATH)
+                    return
+                except Exception as e:
+                    print(f"Warning: Failed to copy database template from {cand}: {e}")
+
+def get_db():
+    ensure_template_copied()
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    
+    # Verify that the users table exists. If not, auto-initialize
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT 1 FROM users LIMIT 1")
+    except sqlite3.OperationalError:
+        init_db(existing_conn=conn)
+    
     return conn
 
 def hash_password(password: str, salt: str = None) -> tuple[str, str]:
@@ -29,8 +49,17 @@ def verify_password(password: str, pwd_hash: str, salt: str) -> bool:
     expected_hash, _ = hash_password(password, salt)
     return expected_hash == pwd_hash
 
-def init_db():
-    conn = get_db()
+def init_db(existing_conn=None):
+    close_after = False
+    if existing_conn is not None:
+        conn = existing_conn
+    else:
+        ensure_template_copied()
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        close_after = True
+
     cursor = conn.cursor()
 
     cursor.executescript("""
@@ -182,7 +211,8 @@ def init_db():
 
     conn.commit()
     seed_initial_data(conn)
-    conn.close()
+    if close_after:
+        conn.close()
 
 def seed_initial_data(conn):
     cursor = conn.cursor()

@@ -25,9 +25,16 @@ else:
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     DB_PATH = BASE_DIR / "artisan_marketplace.db"
 
-JWT_SECRET = os.getenv("JWT_SECRET", "kalasetu_ai_super_secret_artisan_jwt_key_2026")
+# JWT Configuration with bulletproof fallback against empty environment variables
+jwt_secret_env = os.getenv("JWT_SECRET")
+JWT_SECRET = jwt_secret_env.strip() if (jwt_secret_env and jwt_secret_env.strip()) else "kalasetu_ai_super_secret_artisan_jwt_key_2026"
 JWT_ALGORITHM = "HS256"
-JWT_EXPIRATION_HOURS = 24 * 7  # 7 days
+
+jwt_exp_env = os.getenv("JWT_EXPIRATION_HOURS")
+try:
+    JWT_EXPIRATION_HOURS = int(jwt_exp_env) if (jwt_exp_env and jwt_exp_env.strip()) else 24 * 7
+except Exception:
+    JWT_EXPIRATION_HOURS = 24 * 7
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 PORT = int(os.getenv("PORT") or 8000)

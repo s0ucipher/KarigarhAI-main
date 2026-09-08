@@ -7,25 +7,35 @@ from backend.database import get_db
 
 security = HTTPBearer(auto_error=False)
 
+def get_signing_secret() -> str:
+    secret = JWT_SECRET.strip() if (JWT_SECRET and str(JWT_SECRET).strip()) else "kalasetu_ai_super_secret_artisan_jwt_key_2026"
+    return secret
+
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
+        hours = JWT_EXPIRATION_HOURS if isinstance(JWT_EXPIRATION_HOURS, (int, float)) and JWT_EXPIRATION_HOURS > 0 else 168
+        expire = datetime.now(timezone.utc) + timedelta(hours=hours)
     to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc)})
-    return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    secret = get_signing_secret()
+    token = jwt.encode(to_encode, secret, algorithm=JWT_ALGORITHM)
+    if isinstance(token, bytes):
+        token = token.decode("utf-8")
+    return str(token)
 
 def decode_access_token(token: str) -> dict:
+    secret = get_signing_secret()
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, secret, algorithms=[JWT_ALGORITHM])
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session token has expired. Please log in again."
         )
-    except jwt.PyJWTError:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication token."
