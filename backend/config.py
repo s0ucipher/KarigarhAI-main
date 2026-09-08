@@ -15,7 +15,7 @@ JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24 * 7  # 7 days
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-PORT = int(os.getenv("PORT", "8000"))
+PORT = int(os.getenv("PORT") or 8000)
 HOST = os.getenv("HOST", "127.0.0.1")
 
 # Firebase Authentication Configuration
