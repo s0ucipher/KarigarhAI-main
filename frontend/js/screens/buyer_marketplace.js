@@ -37,51 +37,55 @@ async function renderBuyerMarketplace(container) {
       }
 
       container.innerHTML = `
-        <div class="space-y-4 pb-24">
+        <div class="space-y-4 pb-24 md:pb-12">
           <!-- Top Sticky Search & Delivery Banner -->
-          <div class="p-4 bg-white border-b border-stone-100 shadow-xs sticky top-0 z-20">
-            <!-- Search Bar -->
-            <div class="relative mb-2">
-              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
-                <i class="fa-solid fa-magnifying-glass text-xs"></i>
-              </span>
-              <input type="text" id="marketplace-search-input" value="${searchQuery}" 
-                     placeholder="${t('searchPlaceholder')}"
-                     class="w-full pl-9 pr-9 py-2.5 text-xs rounded-2xl bg-stone-100 border border-transparent focus:bg-white focus:border-amber-600 focus:outline-none transition">
-              ${searchQuery ? `
-                <button id="btn-clear-search" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 text-xs">
-                  ✕
-                </button>
-              ` : ''}
-            </div>
+          <div class="p-3 sm:p-4 bg-white border-b border-stone-100 shadow-xs sticky top-0 z-20">
+            <div class="max-w-7xl mx-auto">
+              <!-- Search Bar -->
+              <div class="relative mb-2">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
+                  <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                </span>
+                <input type="text" id="marketplace-search-input" value="${searchQuery}" 
+                       placeholder="${t('searchPlaceholder')}"
+                       class="w-full pl-9 pr-9 py-2.5 text-xs rounded-2xl bg-stone-100 border border-transparent focus:bg-white focus:border-amber-600 focus:outline-none transition">
+                ${searchQuery ? `
+                  <button id="btn-clear-search" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-stone-400 hover:text-stone-600 text-xs">
+                    ✕
+                  </button>
+                ` : ''}
+              </div>
 
-            <!-- Free Delivery Tagline -->
-            <div class="flex items-center justify-between text-[11px] text-amber-900 bg-amber-50/80 px-3 py-1.5 rounded-xl border border-amber-200/60 font-medium">
-              <span class="flex items-center gap-1.5">
-                <i class="fa-solid fa-truck-fast text-amber-700"></i> ${t("freeDeliveryTag")}
-              </span>
-              <span class="font-bold text-amber-800">100% Authentic Indian Craft</span>
+              <!-- Free Delivery Tagline -->
+              <div class="flex flex-wrap items-center justify-between gap-1 text-[10px] sm:text-[11px] text-amber-900 bg-amber-50/80 px-3 py-1.5 rounded-xl border border-amber-200/60 font-medium">
+                <span class="flex items-center gap-1.5">
+                  <i class="fa-solid fa-truck-fast text-amber-700"></i> ${t("freeDeliveryTag")}
+                </span>
+                <span class="font-bold text-amber-800">100% Authentic Indian Craft</span>
+              </div>
             </div>
           </div>
 
           <!-- Hero Mission Banner -->
-          <div class="mx-4 bg-gradient-to-r from-amber-800 to-amber-950 rounded-3xl p-4 text-white shadow-md relative overflow-hidden">
-            <div class="relative z-10 max-w-xs">
-              <span class="bg-amber-500/30 border border-amber-400/40 text-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                Direct From Rural Artisans
-              </span>
-              <h2 class="text-base font-black mt-2 leading-tight">Every craft carries the soul of its maker.</h2>
-              <p class="text-xs text-amber-200/80 mt-1 leading-normal">
-                Skip the middlemen. Directly support master potters, weavers, and folk artists across India.
-              </p>
-            </div>
-            <div class="absolute -right-4 -bottom-6 text-7xl opacity-15 pointer-events-none">
-              <i class="fa-solid fa-hands-holding-circle"></i>
+          <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="bg-gradient-to-r from-amber-800 to-amber-950 rounded-3xl p-4 sm:p-6 text-white shadow-md relative overflow-hidden">
+              <div class="relative z-10 max-w-md">
+                <span class="bg-amber-500/30 border border-amber-400/40 text-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Direct From Rural Artisans
+                </span>
+                <h2 class="text-base sm:text-xl font-black mt-2 leading-tight">Every craft carries the soul of its maker.</h2>
+                <p class="text-xs sm:text-sm text-amber-200/80 mt-1 leading-normal">
+                  Skip the middlemen. Directly support master potters, weavers, and folk artists across India.
+                </p>
+              </div>
+              <div class="absolute -right-4 -bottom-6 text-7xl sm:text-9xl opacity-15 pointer-events-none">
+                <i class="fa-solid fa-hands-holding-circle"></i>
+              </div>
             </div>
           </div>
 
           <!-- Category Filter Pills -->
-          <div class="px-4">
+          <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
               <button class="category-pill shrink-0 px-3.5 py-2 rounded-2xl text-xs font-bold border transition ${selectedCategory === 'all' ? 'bg-amber-700 text-white border-amber-700 shadow-sm' : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'}" data-cat="all">
                 ${t("allCategories")}
@@ -100,7 +104,7 @@ async function renderBuyerMarketplace(container) {
           </div>
 
           <!-- Featured Artisans Section -->
-          <div class="px-4">
+          <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between mb-2.5">
               <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider flex items-center gap-1.5">
                 <i class="fa-solid fa-crown text-amber-600"></i> ${t("featuredArtisans")}
@@ -137,7 +141,7 @@ async function renderBuyerMarketplace(container) {
           </div>
 
           <!-- Product Grid -->
-          <div class="px-4">
+          <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between mb-3">
               <h3 class="text-xs font-bold text-stone-900 uppercase tracking-wider">
                 Crafts (${filtered.length})
@@ -156,7 +160,7 @@ async function renderBuyerMarketplace(container) {
                 <p class="text-[11px] text-stone-400 mt-1">Try another craft name or explore all categories.</p>
               </div>
             ` : `
-              <div class="grid grid-cols-2 gap-3">
+              <div class="product-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5">
                 ${filtered.map(p => `
                   <div class="product-card bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition flex flex-col justify-between cursor-pointer" data-product-id="${p.id}">
                     <!-- Image with AI Studio badge -->

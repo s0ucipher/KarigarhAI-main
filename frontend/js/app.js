@@ -48,11 +48,46 @@ class App {
       this.updateNotificationBadge();
     }
 
-    // Bind Mobile Simulator toggle
-    document.getElementById("btn-toggle-frame")?.addEventListener("click", () => {
-      const frame = document.getElementById("phone-frame-wrapper");
+    // Bind Desktop / Mobile view mode preview controls
+    this.setupViewModeControls();
+  }
+
+  setupViewModeControls() {
+    const frame = document.getElementById("phone-frame-wrapper");
+    const btnDesktop = document.getElementById("btn-view-desktop");
+    const btnMobile = document.getElementById("btn-view-mobile");
+    const btnToggle = document.getElementById("btn-toggle-frame");
+
+    const updateSelectorUI = (isSimulator) => {
+      if (btnDesktop && btnMobile) {
+        if (isSimulator) {
+          btnMobile.className = "px-3 py-1 rounded-md font-bold transition flex items-center gap-1.5 bg-amber-700 text-white shadow-xs";
+          btnDesktop.className = "px-3 py-1 rounded-md font-bold transition flex items-center gap-1.5 text-stone-300 hover:text-white";
+        } else {
+          btnDesktop.className = "px-3 py-1 rounded-md font-bold transition flex items-center gap-1.5 bg-amber-700 text-white shadow-xs";
+          btnMobile.className = "px-3 py-1 rounded-md font-bold transition flex items-center gap-1.5 text-stone-300 hover:text-white";
+        }
+      }
+    };
+
+    btnDesktop?.addEventListener("click", () => {
       if (frame) {
-        frame.classList.toggle("is-simulator");
+        frame.classList.remove("is-simulator");
+        updateSelectorUI(false);
+      }
+    });
+
+    btnMobile?.addEventListener("click", () => {
+      if (frame) {
+        frame.classList.add("is-simulator");
+        updateSelectorUI(true);
+      }
+    });
+
+    btnToggle?.addEventListener("click", () => {
+      if (frame) {
+        const isSim = frame.classList.toggle("is-simulator");
+        updateSelectorUI(isSim);
       }
     });
   }
@@ -100,58 +135,114 @@ class App {
     const isSeller = user && user.role === "seller";
 
     topBar.innerHTML = `
-      <div class="flex items-center justify-between px-4 py-3 bg-white/90 backdrop-blur-md border-b border-stone-200">
-        <!-- Logo & Title -->
-        <div class="flex items-center gap-2 cursor-pointer" id="brand-logo-click">
-          <div class="w-8 h-8 rounded-xl bg-amber-700 text-white flex items-center justify-center text-base shadow-sm">
-            <i class="fa-solid fa-hands-holding-circle"></i>
-          </div>
-          <div>
-            <span class="text-sm font-black text-stone-900 tracking-tight">${t("appName")}</span>
-            <span class="text-[9px] font-bold block -mt-1 text-amber-800">
-              ${isSeller ? 'Artisan Studio' : 'Craft Marketplace'}
-            </span>
-          </div>
-        </div>
-
-        <!-- Right Controls: Role Switcher & Notifications & Language -->
-        <div class="flex items-center gap-1.5">
-          <!-- Role Switcher or Log In button -->
-          ${api.token && api.user ? `
-            <button id="btn-top-role-toggle" class="px-2.5 py-1 rounded-full text-[10px] font-black border transition shadow-2xs flex items-center gap-1 ${isSeller ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-stone-100 text-stone-800 border-stone-300'}">
-              <i class="fa-solid ${isSeller ? 'fa-hammer text-amber-700' : 'fa-bag-shopping text-emerald-700'}"></i>
-              <span>${isSeller ? 'Artisan' : 'Buyer'}</span>
-              <i class="fa-solid fa-repeat text-[8px] opacity-60"></i>
-            </button>
-          ` : `
-            <button id="btn-top-login" class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-700 hover:bg-amber-800 text-white transition shadow-2xs flex items-center gap-1">
-              <i class="fa-solid fa-arrow-right-to-bracket text-[9px]"></i>
-              <span>${t("login")}</span>
-            </button>
-          `}
-
-          <!-- Language Dropdown -->
-          <div class="relative">
-            <button id="btn-lang-dropdown" class="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center text-xs font-bold transition">
-              ${currentLanguage.toUpperCase()}
-            </button>
-            <div id="lang-dropdown-menu" class="hidden absolute right-0 mt-1 w-28 bg-white border border-stone-200 rounded-xl shadow-xl z-50 py-1 text-xs font-bold">
-              <button class="lang-opt w-full text-left px-3 py-1.5 hover:bg-amber-50 ${currentLanguage === 'en' ? 'text-amber-800 font-black' : 'text-stone-700'}" data-lang="en">English</button>
-              <button class="lang-opt w-full text-left px-3 py-1.5 hover:bg-amber-50 ${currentLanguage === 'hi' ? 'text-amber-800 font-black' : 'text-stone-700'}" data-lang="hi">हिन्दी</button>
-              <button class="lang-opt w-full text-left px-3 py-1.5 hover:bg-amber-50 ${currentLanguage === 'bn' ? 'text-amber-800 font-black' : 'text-stone-700'}" data-lang="bn">বাংলা</button>
+      <div class="bg-white/90 backdrop-blur-md border-b border-stone-200">
+        <div class="max-w-7xl mx-auto flex items-center justify-between px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3">
+          <!-- Logo & Title -->
+          <div class="flex items-center gap-2 cursor-pointer shrink-0" id="brand-logo-click">
+            <div class="w-8 h-8 rounded-xl bg-amber-700 text-white flex items-center justify-center text-base shadow-sm">
+              <i class="fa-solid fa-hands-holding-circle"></i>
+            </div>
+            <div>
+              <span class="text-sm font-black text-stone-900 tracking-tight">${t("appName")}</span>
+              <span class="text-[9px] font-bold block -mt-1 text-amber-800">
+                ${isSeller ? 'Artisan Studio' : 'Craft Marketplace'}
+              </span>
             </div>
           </div>
 
-          <!-- Notification Bell -->
-          <button id="btn-notifications-open" class="relative w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center text-xs transition">
-            <i class="fa-solid fa-bell"></i>
-            <span id="badge-notification-count" class="${this.unreadNotifications > 0 ? '' : 'hidden'} absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-black flex items-center justify-center shadow">
-              ${this.unreadNotifications}
-            </span>
-          </button>
+          <!-- Desktop Navigation Bar (Visible on desktop screens when not in phone simulator) -->
+          ${this.currentScreen !== "auth" ? `
+            <nav class="hidden md:flex items-center gap-1 lg:gap-2 desktop-nav-links">
+              ${isSeller ? `
+                <button class="nav-desktop-item px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${this.currentScreen === 'seller_dashboard' ? 'bg-amber-100 text-amber-900' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'}" data-nav="seller_dashboard">
+                  <i class="fa-solid fa-chart-pie text-xs"></i>
+                  <span>${t("navHome")}</span>
+                </button>
+                <button class="nav-desktop-item px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${this.currentScreen === 'seller_orders' ? 'bg-amber-100 text-amber-900' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'}" data-nav="seller_orders">
+                  <i class="fa-solid fa-boxes-packing text-xs"></i>
+                  <span>${t("navOrders")}</span>
+                </button>
+                <button class="nav-desktop-item px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${this.currentScreen === 'seller_add_product' ? 'bg-amber-700 text-white shadow-xs' : 'text-amber-800 bg-amber-50 hover:bg-amber-100'}" data-nav="seller_add_product">
+                  <i class="fa-solid fa-camera text-xs"></i>
+                  <span>${t("navAddProduct")}</span>
+                </button>
+                <button class="nav-desktop-item px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${this.currentScreen === 'seller_profile' ? 'bg-amber-100 text-amber-900' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'}" data-nav="seller_profile">
+                  <i class="fa-solid fa-user-gear text-xs"></i>
+                  <span>${t("navProfile")}</span>
+                </button>
+              ` : `
+                <button class="nav-desktop-item px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${this.currentScreen === 'buyer_marketplace' ? 'bg-amber-100 text-amber-900' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'}" data-nav="buyer_marketplace">
+                  <i class="fa-solid fa-store text-xs"></i>
+                  <span>${t("navMarketplace")}</span>
+                </button>
+                <button class="nav-desktop-item px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${this.currentScreen === 'buyer_orders' ? 'bg-amber-100 text-amber-900' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'}" data-nav="buyer_orders">
+                  <i class="fa-solid fa-box text-xs"></i>
+                  <span>${t("navOrders")}</span>
+                </button>
+                <button class="nav-desktop-item relative px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${this.currentScreen === 'buyer_cart_checkout' ? 'bg-amber-100 text-amber-900' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'}" data-nav="buyer_cart_checkout">
+                  <div class="relative flex items-center gap-1">
+                    <i class="fa-solid fa-cart-shopping text-xs"></i>
+                    <span>${t("navCart")}</span>
+                    <span id="badge-desktop-cart-count" class="${this.cartCount > 0 ? '' : 'hidden'} px-1.5 py-0.2 rounded-full bg-amber-700 text-white text-[9px] font-black">
+                      ${this.cartCount}
+                    </span>
+                  </div>
+                </button>
+                <button class="nav-desktop-item px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${this.currentScreen === 'buyer_profile' ? 'bg-amber-100 text-amber-900' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'}" data-nav="buyer_profile">
+                  <i class="fa-solid fa-user text-xs"></i>
+                  <span>${t("navProfile")}</span>
+                </button>
+              `}
+            </nav>
+          ` : ''}
+
+          <!-- Right Controls: Role Switcher & Notifications & Language -->
+          <div class="flex items-center gap-1.5 shrink-0">
+            <!-- Role Switcher or Log In button -->
+            ${api.token && api.user ? `
+              <button id="btn-top-role-toggle" class="px-2.5 py-1 rounded-full text-[10px] font-black border transition shadow-2xs flex items-center gap-1 ${isSeller ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-stone-100 text-stone-800 border-stone-300'}">
+                <i class="fa-solid ${isSeller ? 'fa-hammer text-amber-700' : 'fa-bag-shopping text-emerald-700'}"></i>
+                <span>${isSeller ? 'Artisan' : 'Buyer'}</span>
+                <i class="fa-solid fa-repeat text-[8px] opacity-60"></i>
+              </button>
+            ` : `
+              <button id="btn-top-login" class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-700 hover:bg-amber-800 text-white transition shadow-2xs flex items-center gap-1">
+                <i class="fa-solid fa-arrow-right-to-bracket text-[9px]"></i>
+                <span>${t("login")}</span>
+              </button>
+            `}
+
+            <!-- Language Dropdown -->
+            <div class="relative">
+              <button id="btn-lang-dropdown" class="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center text-xs font-bold transition">
+                ${currentLanguage.toUpperCase()}
+              </button>
+              <div id="lang-dropdown-menu" class="hidden absolute right-0 mt-1 w-28 bg-white border border-stone-200 rounded-xl shadow-xl z-50 py-1 text-xs font-bold">
+                <button class="lang-opt w-full text-left px-3 py-1.5 hover:bg-amber-50 ${currentLanguage === 'en' ? 'text-amber-800 font-black' : 'text-stone-700'}" data-lang="en">English</button>
+                <button class="lang-opt w-full text-left px-3 py-1.5 hover:bg-amber-50 ${currentLanguage === 'hi' ? 'text-amber-800 font-black' : 'text-stone-700'}" data-lang="hi">हिन्दी</button>
+                <button class="lang-opt w-full text-left px-3 py-1.5 hover:bg-amber-50 ${currentLanguage === 'bn' ? 'text-amber-800 font-black' : 'text-stone-700'}" data-lang="bn">বাংলা</button>
+              </div>
+            </div>
+
+            <!-- Notification Bell -->
+            <button id="btn-notifications-open" class="relative w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center text-xs transition">
+              <i class="fa-solid fa-bell"></i>
+              <span id="badge-notification-count" class="${this.unreadNotifications > 0 ? '' : 'hidden'} absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-black flex items-center justify-center shadow">
+                ${this.unreadNotifications}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     `;
+
+    // Bind desktop nav links
+    topBar.querySelectorAll(".nav-desktop-item").forEach(item => {
+      item.addEventListener("click", () => {
+        const dest = item.getAttribute("data-nav");
+        if (dest) this.navigate(dest);
+      });
+    });
 
     // Brand click
     document.getElementById("brand-logo-click")?.addEventListener("click", () => {
@@ -320,15 +411,24 @@ class App {
   async updateCartBadge() {
     if (!api.token || (api.user && api.user.role === "seller")) {
       this.cartCount = 0;
+      const el = document.getElementById("badge-cart-count");
+      const elD = document.getElementById("badge-desktop-cart-count");
+      if (el) el.classList.add("hidden");
+      if (elD) elD.classList.add("hidden");
       return;
     }
     try {
       const data = await api.getCart();
       this.cartCount = data.item_count || 0;
       const el = document.getElementById("badge-cart-count");
+      const elD = document.getElementById("badge-desktop-cart-count");
       if (el) {
         el.innerText = this.cartCount;
         el.classList.toggle("hidden", this.cartCount === 0);
+      }
+      if (elD) {
+        elD.innerText = this.cartCount;
+        elD.classList.toggle("hidden", this.cartCount === 0);
       }
     } catch (e) {
       // ignore

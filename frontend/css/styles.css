@@ -40,28 +40,92 @@ body {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 
-/* Mobile Simulator Mode Styles */
-#phone-frame-wrapper.is-simulator {
-  max-width: 420px;
-  margin: 24px auto;
-  border-radius: 44px;
-  box-shadow: 0 25px 60px -15px rgba(50, 30, 10, 0.35), 0 0 0 10px #292524, 0 0 0 12px #44403C;
-  overflow: hidden;
-  height: calc(100vh - 48px);
-  max-height: 880px;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  background: #FFFDF9;
+/* Mobile Simulator Mode Styles (Active only on desktop screens >= 768px when explicitly selected) */
+@media (min-width: 768px) {
+  #phone-frame-wrapper.is-simulator {
+    max-width: 420px;
+    margin: 20px auto;
+    border-radius: 44px;
+    box-shadow: 0 25px 60px -15px rgba(50, 30, 10, 0.35), 0 0 0 10px #292524, 0 0 0 12px #44403C;
+    overflow: hidden;
+    height: calc(100vh - 80px);
+    max-height: 860px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: #FFFDF9;
+  }
+
+  #phone-frame-wrapper.is-simulator #screen-container {
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  #phone-frame-wrapper.is-simulator .phone-notch {
+    display: block;
+  }
+
+  /* When simulator is active, hide desktop navigation in topbar and show phone bottom nav */
+  #phone-frame-wrapper.is-simulator .desktop-nav-links {
+    display: none !important;
+  }
+  #phone-frame-wrapper.is-simulator #app-bottom-nav {
+    display: block !important;
+  }
+
+  /* In phone simulator mode, ensure product grid displays 2 columns and details stack like mobile */
+  #phone-frame-wrapper.is-simulator .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
+  }
+  #phone-frame-wrapper.is-simulator .md\:grid {
+    display: block !important;
+  }
+  #phone-frame-wrapper.is-simulator .md\:pt-10 {
+    padding-top: 0 !important;
+  }
+  #phone-frame-wrapper.is-simulator .fixed.bottom-0 {
+    max-width: 420px !important;
+  }
+  #phone-frame-wrapper.is-simulator .fixed.top-3 {
+    max-width: 420px !important;
+  }
+
+  /* When natural desktop is active, hide the mobile bottom tab bar (navigation is seamlessly in topbar) */
+  #phone-frame-wrapper:not(.is-simulator) #app-bottom-nav {
+    display: none !important;
+  }
 }
 
-#phone-frame-wrapper.is-simulator #screen-container {
-  overflow-y: auto;
-  flex: 1;
-}
+/* Ensure mobile viewports (< 768px) are ALWAYS natural full-width and never render simulator styling */
+@media (max-width: 767px) {
+  #simulator-header {
+    display: none !important;
+  }
 
-#phone-frame-wrapper.is-simulator .phone-notch {
-  display: block;
+  #phone-frame-wrapper,
+  #phone-frame-wrapper.is-simulator {
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    height: 100vh !important;
+    max-height: none !important;
+    background: #FAF8F5 !important;
+  }
+
+  .phone-notch,
+  #phone-frame-wrapper.is-simulator .phone-notch {
+    display: none !important;
+  }
+
+  .desktop-nav-links {
+    display: none !important;
+  }
+
+  #app-bottom-nav {
+    display: block !important;
+  }
 }
 
 .phone-notch {
@@ -76,6 +140,11 @@ body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 60;
+}
+
+/* Smooth mobile touch scrolling */
+#screen-container {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Button tactile press effect */

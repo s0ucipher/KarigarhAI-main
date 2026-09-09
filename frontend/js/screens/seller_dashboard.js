@@ -60,7 +60,7 @@ async function renderSellerDashboard(container) {
     const products = data.all_products || [];
 
     container.innerHTML = `
-      <div class="p-4 space-y-5 pb-20">
+      <div class="p-4 space-y-5 pb-20 max-w-5xl mx-auto">
         <!-- Artisan Greeting Banner -->
         <div class="bg-gradient-to-r from-amber-800 to-amber-900 rounded-2xl p-4 text-white shadow-md relative overflow-hidden">
           <div class="flex items-start justify-between relative z-10">
