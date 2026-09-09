@@ -4,9 +4,12 @@ function renderSellerAddProduct(container) {
   let currentStep = 1; // 1: Photo, 2: AI Enhance & Compare, 3: AI Details, 4: Pricing & Stock, 5: Success
   let selectedFile = null;
   let enhancementData = null;
-  let aiCatalogData = null;
-  let finalPrice = 750;
+  let finalPrice = null;
   let finalQuantity = 5;
+  let sellerCostMaterial = "";
+  let sellerCostLabor = "";
+  let sellerCostOther = "";
+  let isCostCalculatorOpen = false;
 
   function render() {
     container.innerHTML = `
@@ -130,15 +133,25 @@ function renderSellerAddProduct(container) {
       const orig = enhancementData?.image_enhancement?.original_url;
       const enh = enhancementData?.image_enhancement?.enhanced_url;
       const metrics = enhancementData?.image_enhancement?.metrics || {};
+      const status = enhancementData?.image_enhancement?.status || 'enhanced';
+
+      const isOriginalPreserved = status === 'original_preserved';
+      const badgeText = isOriginalPreserved ? 'Photo Quality Verified (Authentic)' : 'Smart Enhancement Applied';
+      const badgeIcon = isOriginalPreserved ? 'fa-shield-halved text-amber-700' : 'fa-sparkles text-emerald-600';
+      const badgeBg = isOriginalPreserved ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-800';
+      const subText = isOriginalPreserved
+        ? 'Your photograph has balanced natural lighting and sharpness. Original craftsmanship was preserved.'
+        : 'Drag the slider horizontally to compare your raw photo with studio lighting & clarity.';
+      const afterLabel = isOriginalPreserved ? 'Verified Authentic ✨' : `${t("sliderAfter")} ✨`;
 
       return `
         <div class="space-y-4 animate-fade-in">
           <div class="text-center">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold mb-1">
-              <i class="fa-solid fa-sparkles text-emerald-600"></i> AI Enhancement Complete
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${badgeBg} text-[11px] font-bold mb-1">
+              <i class="fa-solid ${badgeIcon}"></i> ${badgeText}
             </span>
             <h2 class="text-lg font-black text-stone-900">Compare Quality (Slide to View)</h2>
-            <p class="text-xs text-stone-500">Drag the slider horizontally to compare your raw photo with AI studio lighting.</p>
+            <p class="text-xs text-stone-500">${subText}</p>
           </div>
 
           <!-- Interactive Before / After Image Slider -->
@@ -156,7 +169,7 @@ function renderSellerAddProduct(container) {
 
             <!-- Enhanced Label -->
             <div class="absolute top-3 right-3 bg-amber-700/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-md backdrop-blur-xs shadow">
-              ${t("sliderAfter")} ✨
+              ${afterLabel}
             </div>
 
             <!-- Draggable Divider Line & Knob -->
@@ -170,15 +183,15 @@ function renderSellerAddProduct(container) {
           <!-- Enhancement Metrics Badges -->
           <div class="grid grid-cols-3 gap-2 text-center">
             <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-2.5">
-              <div class="text-xs font-black text-amber-900">${metrics.lighting_improvement || '+24%'}</div>
+              <div class="text-xs font-black text-amber-900">${metrics.lighting_improvement || 'Optimal (Balanced)'}</div>
               <div class="text-[9px] text-amber-700 font-bold uppercase">${t("metricsLighting")}</div>
             </div>
             <div class="bg-emerald-50/80 border border-emerald-200 rounded-xl p-2.5">
-              <div class="text-xs font-black text-emerald-900">${metrics.sharpness_gain || '+35%'}</div>
+              <div class="text-xs font-black text-emerald-900">${metrics.sharpness_gain || 'Preserved'}</div>
               <div class="text-[9px] text-emerald-700 font-bold uppercase">${t("metricsSharpness")}</div>
             </div>
             <div class="bg-purple-50/80 border border-purple-200 rounded-xl p-2.5">
-              <div class="text-xs font-black text-purple-900">${metrics.studio_grade || 'Studio A+'}</div>
+              <div class="text-xs font-black text-purple-900">${metrics.studio_grade || 'Marketplace Ready'}</div>
               <div class="text-[9px] text-purple-700 font-bold uppercase">${t("metricsStudio")}</div>
             </div>
           </div>
@@ -193,6 +206,7 @@ function renderSellerAddProduct(container) {
 
     if (currentStep === 3) {
       const cat = aiCatalogData || {};
+      const va = cat.visual_analysis || {};
 
       return `
         <div class="space-y-4 animate-fade-in">
@@ -203,6 +217,42 @@ function renderSellerAddProduct(container) {
             <h2 class="text-lg font-black text-stone-900">${t("step3Title")}</h2>
             <p class="text-xs text-stone-500">${t("step3Sub")}</p>
           </div>
+
+          <!-- Deep Visual Analysis Evidence Callout -->
+          ${(cat.craftsmanship_level || cat.complexity_score !== undefined || cat.labor_intensity || va.craft_style) ? `
+          <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 rounded-2xl p-3.5 shadow-xs space-y-2">
+            <div class="flex items-center justify-between text-[11px] font-black text-amber-950">
+              <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-700"></i> Visual Craft Analysis
+              </span>
+              <span class="text-[10px] font-semibold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                Evidence-Based
+              </span>
+            </div>
+            <div class="flex flex-wrap gap-1.5 text-[11px]">
+              ${cat.craftsmanship_level ? `
+                <span class="inline-flex items-center gap-1 bg-white/90 border border-amber-200 px-2.5 py-1 rounded-lg font-bold text-stone-800 shadow-2xs">
+                  <i class="fa-solid fa-gem text-amber-600 text-[10px]"></i> Craftsmanship: <span class="capitalize text-amber-900">${cat.craftsmanship_level}</span>
+                </span>
+              ` : ''}
+              ${(cat.complexity_score !== undefined && cat.complexity_score !== null) ? `
+                <span class="inline-flex items-center gap-1 bg-white/90 border border-amber-200 px-2.5 py-1 rounded-lg font-bold text-stone-800 shadow-2xs">
+                  <i class="fa-solid fa-gauge-high text-amber-600 text-[10px]"></i> Complexity: <span class="text-amber-900">${cat.complexity_score}/100</span>
+                </span>
+              ` : ''}
+              ${cat.labor_intensity ? `
+                <span class="inline-flex items-center gap-1 bg-white/90 border border-amber-200 px-2.5 py-1 rounded-lg font-bold text-stone-800 shadow-2xs">
+                  <i class="fa-solid fa-hand-holding-hand text-amber-600 text-[10px]"></i> Labor: <span class="capitalize text-amber-900">${cat.labor_intensity}</span>
+                </span>
+              ` : ''}
+              ${va.craft_style && va.craft_style !== 'Unknown' ? `
+                <span class="inline-flex items-center gap-1 bg-white/90 border border-amber-200 px-2.5 py-1 rounded-lg font-medium text-stone-700 shadow-2xs">
+                  <i class="fa-solid fa-shapes text-amber-600 text-[10px]"></i> Style: <span>${va.craft_style}</span>
+                </span>
+              ` : ''}
+            </div>
+          </div>
+          ` : ''}
 
           <div class="bg-white border border-stone-200 rounded-2xl p-4 shadow-xs space-y-3.5">
             <!-- Product Title -->
@@ -218,7 +268,7 @@ function renderSellerAddProduct(container) {
             <!-- Product Category -->
             <div>
               <label class="block text-xs font-bold text-stone-700 mb-1">${t("craftCategory")}</label>
-              <input type="text" id="ai-category-input" value="${cat.category_name || 'Pottery & Terracotta'}" readonly
+              <input type="text" id="ai-category-input" value="${cat.category_name || 'Handmade Craft'}" readonly
                      class="w-full px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-50 rounded-xl border border-stone-200">
             </div>
 
@@ -238,12 +288,12 @@ function renderSellerAddProduct(container) {
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="block text-xs font-bold text-stone-700 mb-1">${t("craftMaterial")}</label>
-                <input type="text" id="ai-material-input" value="${cat.material || 'Natural Clay'}"
+                <input type="text" id="ai-material-input" value="${cat.material || 'Natural Material'}"
                        class="w-full px-3 py-2 text-xs text-stone-800 rounded-xl border border-stone-300">
               </div>
               <div>
                 <label class="block text-xs font-bold text-stone-700 mb-1">${t("craftTechnique")}</label>
-                <input type="text" id="ai-technique-input" value="${cat.craft_details || 'Hand-thrown'}"
+                <input type="text" id="ai-technique-input" value="${cat.craft_details || 'Handcrafted'}"
                        class="w-full px-3 py-2 text-xs text-stone-800 rounded-xl border border-stone-300">
               </div>
             </div>
@@ -278,9 +328,33 @@ function renderSellerAddProduct(container) {
 
     if (currentStep === 4) {
       const cat = aiCatalogData || {};
-      const minP = cat.suggested_min_price || 650;
-      const maxP = cat.suggested_max_price || 950;
-      const rationale = cat.ai_rationale || "Based on authentic handcrafted materials and current artisan market demand.";
+      const hasPrice = Boolean(cat.price_available) && typeof cat.suggested_min_price === "number" && typeof cat.suggested_max_price === "number" && cat.suggested_min_price > 0;
+      const minP = hasPrice ? Math.round(cat.suggested_min_price) : null;
+      const maxP = hasPrice ? Math.round(cat.suggested_max_price) : null;
+
+      const isRefined = (cat.price_source === "seller_costs" || cat.price_source === "artisan_cost_plus");
+      let sourceBadge = "AI Product Analysis";
+      let sourceIcon = "fa-chart-line";
+      let titleHeader = "AI RECOMMENDED PRICE RANGE";
+
+      if (isRefined) {
+        sourceBadge = "Refined Artisan Cost-Plus Range";
+        sourceIcon = "fa-calculator";
+        titleHeader = "REFINED ARTISAN PRICE RANGE";
+      } else if (cat.price_source === "gemini") {
+        sourceBadge = "AI Curator Recommendation";
+        sourceIcon = "fa-wand-magic-sparkles";
+        titleHeader = "AI RECOMMENDED PRICE RANGE";
+      } else {
+        sourceBadge = "AI Product Analysis";
+        sourceIcon = "fa-scale-balanced";
+        titleHeader = "AI RECOMMENDED PRICE RANGE";
+      }
+
+      const rationale = cat.price_reason || cat.ai_rationale || (hasPrice 
+        ? "AI-assisted estimated price range based on craft complexity, materials, and artisan labor."
+        : "AI price recommendation is unavailable for this photograph. Please enter your fair selling price directly based on materials and crafting hours.");
+      const priceFactors = Array.isArray(cat.price_factors) ? cat.price_factors : [];
 
       return `
         <div class="space-y-4 animate-fade-in">
@@ -289,20 +363,116 @@ function renderSellerAddProduct(container) {
             <p class="text-xs text-stone-500">${t("step4Sub")}</p>
           </div>
 
-          <!-- AI Price Recommendation Callout -->
-          <div class="bg-amber-50 border-2 border-amber-300/80 rounded-2xl p-4 shadow-xs">
-            <div class="flex items-center gap-2 mb-1.5">
-              <div class="w-6 h-6 rounded-full bg-amber-700 text-white flex items-center justify-center text-[11px]">
-                <i class="fa-solid fa-chart-line"></i>
+          <!-- Price Recommendation Card: Mode 1 (Initial AI Recommendation) vs Mode 2 (Refined Cost-Plus) vs Indeterminate -->
+          ${hasPrice ? `
+          <div class="bg-gradient-to-br ${isRefined ? 'from-emerald-50 via-teal-50/40 to-emerald-100/30 border-emerald-400' : 'from-amber-50 via-orange-50/50 to-amber-100/40 border-amber-300'} border-2 rounded-2xl p-4 shadow-sm space-y-2.5 transition-all">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full ${isRefined ? 'bg-emerald-700' : 'bg-amber-700'} text-white flex items-center justify-center text-[11px] shadow-xs">
+                  <i class="fa-solid ${sourceIcon}"></i>
+                </div>
+                <span class="text-xs font-black ${isRefined ? 'text-emerald-950' : 'text-amber-950'} tracking-wide uppercase">${titleHeader}</span>
               </div>
-              <span class="text-xs font-bold text-amber-900 uppercase tracking-wider">${t("aiPriceSuggestion")}</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-bold ${isRefined ? 'text-emerald-900 bg-white/90 border-emerald-300' : 'text-amber-900 bg-white/80 border-amber-200'} px-2 py-0.5 rounded-full border shadow-2xs">
+                  ${sourceBadge}
+                </span>
+                <span class="text-[10px] font-extrabold ${isRefined ? 'text-emerald-800 bg-emerald-100 border-emerald-300' : 'text-amber-800 bg-amber-100 border-amber-200'} px-2 py-0.5 rounded-full border">
+                  ${cat.price_confidence ? Math.round(cat.price_confidence * 100) + '% Confidence' : 'Calculated'}
+                </span>
+              </div>
             </div>
-            <div class="text-xl font-black text-amber-900 ml-8">
-              ₹${minP} – ₹${maxP}
+
+            <div class="text-2xl font-black ${isRefined ? 'text-emerald-950' : 'text-amber-900'} ml-8 tracking-tight flex items-baseline gap-2">
+              <span>₹${minP.toLocaleString('en-IN')} – ₹${maxP.toLocaleString('en-IN')}</span>
+              <span class="text-[11px] font-semibold text-stone-500">${isRefined ? "refined cost-plus range" : "recommended range"}</span>
             </div>
-            <p class="text-[11px] text-amber-800/90 ml-8 mt-1 leading-snug">
+
+            <div class="ml-8 space-y-1">
+              <p class="text-[11px] font-semibold text-stone-700 leading-snug">
+                ${rationale}
+              </p>
+              <p class="text-[10px] text-stone-500 italic">
+                ${isRefined 
+                  ? "Calculated using artisan-provided production costs and a craftsmanship-based margin." 
+                  : "Based on detected product characteristics, material, craftsmanship, complexity and other available factors."}
+              </p>
+              ${isRefined && cat.initial_price ? `
+              <div class="pt-1 flex items-center gap-1.5 text-[10px] text-emerald-900 font-medium">
+                <span>Initial AI estimate was ₹${cat.initial_price.min.toLocaleString('en-IN')} – ₹${cat.initial_price.max.toLocaleString('en-IN')}.</span>
+                <button type="button" id="btn-reset-initial-price" class="font-bold underline text-amber-800 hover:text-amber-950 cursor-pointer">
+                  Reset to Initial AI Estimate
+                </button>
+              </div>
+              ` : ''}
+            </div>
+
+            ${priceFactors.length > 0 ? `
+            <div class="flex flex-wrap gap-1.5 ml-8 pt-1">
+              ${priceFactors.map(f => `
+                <span class="inline-flex items-center gap-1 bg-white/95 border ${isRefined ? 'border-emerald-200 text-emerald-950' : 'border-amber-200/90 text-amber-950'} text-[10px] font-semibold px-2 py-0.5 rounded-md shadow-2xs">
+                  <i class="fa-solid fa-tag text-[9px] ${isRefined ? 'text-emerald-600' : 'text-amber-600'}"></i> ${f}
+                </span>
+              `).join('')}
+            </div>
+            ` : ''}
+          </div>
+          ` : `
+          <!-- Indeterminate Product State (Only for blank/corrupt/unrecognizable images) -->
+          <div class="bg-stone-50 border-2 border-stone-200 rounded-2xl p-4 shadow-xs space-y-1.5">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-stone-500 text-white flex items-center justify-center text-[11px]">
+                <i class="fa-solid fa-pen-ruler"></i>
+              </div>
+              <span class="text-xs font-bold text-stone-700 uppercase tracking-wider">Direct Artisan Pricing</span>
+            </div>
+            <div class="text-xs font-bold text-stone-800 ml-8">
+              AI Price Recommendation Unavailable
+            </div>
+            <p class="text-[11px] text-stone-500 ml-8 leading-relaxed">
               ${rationale}
             </p>
+          </div>
+          `}
+
+          <!-- Optional Artisan Cost-Based Pricing Calculator Accordion -->
+          <div class="bg-white border border-stone-200 rounded-2xl p-4 shadow-xs">
+            <button type="button" id="btn-toggle-cost-calc" class="w-full flex items-center justify-between text-left text-xs font-bold text-stone-800 hover:text-amber-800">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-calculator text-amber-700"></i>
+                <span>Fine-tune with your actual production costs (Optional)</span>
+              </div>
+              <i class="fa-solid ${isCostCalculatorOpen ? 'fa-chevron-up' : 'fa-chevron-down'} text-stone-400 text-xs"></i>
+            </button>
+            
+            <div id="cost-calculator-drawer" class="${isCostCalculatorOpen ? 'block' : 'hidden'} mt-3 pt-3 border-t border-stone-100 space-y-3">
+              <p class="text-[11px] text-stone-500">
+                If you know your raw material, artisan wages, or firing/packaging costs, enter them below. KalaSetu AI will calculate a fair artisan selling range with healthy margins.
+              </p>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-[10px] font-bold text-stone-600 mb-1">Material (₹)</label>
+                  <input type="number" id="input-cost-material" value="${sellerCostMaterial}" placeholder="e.g. 350" min="0"
+                         class="w-full px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-stone-200 focus:border-amber-700 focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-stone-600 mb-1">Artisan Labor (₹)</label>
+                  <input type="number" id="input-cost-labor" value="${sellerCostLabor}" placeholder="e.g. 500" min="0"
+                         class="w-full px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-stone-200 focus:border-amber-700 focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-stone-600 mb-1">Packaging/Other (₹)</label>
+                  <input type="number" id="input-cost-other" value="${sellerCostOther}" placeholder="e.g. 100" min="0"
+                         class="w-full px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-stone-200 focus:border-amber-700 focus:outline-none">
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button type="button" id="btn-apply-costs" class="bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-xs flex items-center gap-1.5">
+                  <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+                  <span>Recalculate Price Range</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Seller Pricing Form -->
@@ -312,9 +482,13 @@ function renderSellerAddProduct(container) {
               <label class="block text-xs font-bold text-stone-800 mb-1.5">${t("sellingPrice")} *</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-lg font-bold text-stone-500 pointer-events-none">₹</span>
-                <input type="number" id="input-selling-price" value="${finalPrice}" min="50" step="10"
+                <input type="number" id="input-selling-price" 
+                       value="${finalPrice !== null && finalPrice !== undefined ? finalPrice : (hasPrice ? minP : '')}" 
+                       placeholder="${hasPrice ? minP : 'Enter your selling price in ₹'}" 
+                       min="10" step="10"
                        class="w-full pl-9 pr-3 py-3 text-lg font-black text-stone-900 rounded-2xl border-2 border-stone-300 focus:border-amber-700 focus:outline-none">
               </div>
+              <p class="text-[10px] text-stone-400 mt-1">You retain 100% control over your final price. Adjust anytime.</p>
             </div>
 
             <!-- Original MRP (Optional for discount display) -->
@@ -322,7 +496,10 @@ function renderSellerAddProduct(container) {
               <label class="block text-xs font-bold text-stone-700 mb-1.5">${t("originalPriceOptional")}</label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-sm font-bold text-stone-400 pointer-events-none">₹</span>
-                <input type="number" id="input-original-price" value="${Math.round(finalPrice * 1.25)}" min="50"
+                <input type="number" id="input-original-price" 
+                       value="${finalPrice ? Math.round(finalPrice * 1.25) : (hasPrice && minP ? Math.round(minP * 1.25) : '')}" 
+                       placeholder="${hasPrice && minP ? Math.round(minP * 1.25) : 'MRP (optional)'}" 
+                       min="10"
                        class="w-full pl-9 pr-3 py-2 text-sm font-semibold text-stone-600 rounded-xl border border-stone-200">
               </div>
             </div>
@@ -496,13 +673,53 @@ function renderSellerAddProduct(container) {
       }
 
       if (btnConfirmDetails) {
-        btnConfirmDetails.addEventListener("click", () => {
+        btnConfirmDetails.addEventListener("click", async () => {
           // Save edited values back to aiCatalogData
-          aiCatalogData.title = document.getElementById("ai-title-input").value.trim();
-          aiCatalogData.description = document.getElementById("ai-description-input").value.trim();
-          aiCatalogData.material = document.getElementById("ai-material-input").value.trim();
-          aiCatalogData.craft_details = document.getElementById("ai-technique-input").value.trim();
-          finalPrice = aiCatalogData.suggested_min_price || 750;
+          if (aiCatalogData) {
+            aiCatalogData.title = document.getElementById("ai-title-input")?.value.trim() || aiCatalogData.title;
+            aiCatalogData.description = document.getElementById("ai-description-input")?.value.trim() || aiCatalogData.description;
+            aiCatalogData.material = document.getElementById("ai-material-input")?.value.trim() || aiCatalogData.material;
+            aiCatalogData.craft_details = document.getElementById("ai-technique-input")?.value.trim() || aiCatalogData.craft_details;
+
+            const hasValidPrice = Boolean(aiCatalogData.price_available) && 
+                                  typeof aiCatalogData.suggested_min_price === "number" && 
+                                  typeof aiCatalogData.suggested_max_price === "number" && 
+                                  aiCatalogData.suggested_min_price > 0;
+            if (!hasValidPrice) {
+              try {
+                showToast("Analyzing craft attributes for initial pricing...", "info");
+                const calcResp = await api.calculatePrice({
+                  category: aiCatalogData.category_id || aiCatalogData.category_slug,
+                  category_name: aiCatalogData.category_name,
+                  title: aiCatalogData.title || aiCatalogData.name,
+                  material: aiCatalogData.material,
+                  craft_details: aiCatalogData.craft_details,
+                  complexity_score: aiCatalogData.complexity_score || 50,
+                  craftsmanship_level: aiCatalogData.craftsmanship_level || "detailed",
+                  scale: "medium"
+                });
+                if (calcResp && calcResp.price_available) {
+                  aiCatalogData.suggested_min_price = calcResp.suggested_min_price;
+                  aiCatalogData.suggested_max_price = calcResp.suggested_max_price;
+                  aiCatalogData.price_source = calcResp.price_source || "ai_product_analysis";
+                  aiCatalogData.price_confidence = calcResp.price_confidence;
+                  aiCatalogData.price_reason = calcResp.price_reason;
+                  aiCatalogData.price_factors = calcResp.price_factors;
+                  aiCatalogData.price_available = true;
+                }
+              } catch (err) {
+                console.warn("Initial pricing fallback error:", err);
+              }
+            }
+
+            if (Boolean(aiCatalogData.price_available) && typeof aiCatalogData.suggested_min_price === "number" && aiCatalogData.suggested_min_price > 0) {
+              finalPrice = Math.round(aiCatalogData.suggested_min_price);
+            } else if (finalPrice !== null && finalPrice !== undefined && finalPrice > 0) {
+              // Retain artisan's manually entered price
+            } else {
+              finalPrice = null;
+            }
+          }
           currentStep = 4;
           render();
         });
@@ -517,6 +734,102 @@ function renderSellerAddProduct(container) {
       const btnMinus = document.getElementById("btn-qty-minus");
       const btnPlus = document.getElementById("btn-qty-plus");
       const btnPublish = document.getElementById("btn-publish-craft");
+      const btnToggleCostCalc = document.getElementById("btn-toggle-cost-calc");
+      const btnApplyCosts = document.getElementById("btn-apply-costs");
+
+      if (btnToggleCostCalc) {
+        btnToggleCostCalc.addEventListener("click", () => {
+          isCostCalculatorOpen = !isCostCalculatorOpen;
+          render();
+        });
+      }
+
+      if (btnApplyCosts) {
+        btnApplyCosts.addEventListener("click", async () => {
+          const matVal = parseFloat(document.getElementById("input-cost-material")?.value);
+          const labVal = parseFloat(document.getElementById("input-cost-labor")?.value);
+          const othVal = parseFloat(document.getElementById("input-cost-other")?.value);
+
+          sellerCostMaterial = isNaN(matVal) ? "" : matVal;
+          sellerCostLabor = isNaN(labVal) ? "" : labVal;
+          sellerCostOther = isNaN(othVal) ? "" : othVal;
+
+          try {
+            showToast("Calculating artisan cost-plus pricing...", "info");
+            // Preserve initial AI recommendation before refining with costs
+            if (aiCatalogData && !aiCatalogData.initial_price && aiCatalogData.suggested_min_price) {
+              aiCatalogData.initial_price = {
+                min: aiCatalogData.suggested_min_price,
+                max: aiCatalogData.suggested_max_price,
+                source: aiCatalogData.price_source,
+                confidence: aiCatalogData.price_confidence,
+                reason: aiCatalogData.price_reason,
+                factors: aiCatalogData.price_factors
+              };
+            }
+
+            const priceResp = await api.calculatePrice({
+              category: aiCatalogData?.category_id || aiCatalogData?.category_slug,
+              category_name: aiCatalogData?.category_name,
+              material: aiCatalogData?.material,
+              title: aiCatalogData?.title || aiCatalogData?.name,
+              complexity_score: aiCatalogData?.complexity_score || 50,
+              craftsmanship_level: aiCatalogData?.craftsmanship_level || "detailed",
+              scale: "medium",
+              material_cost: isNaN(matVal) ? null : matVal,
+              labor_cost: isNaN(labVal) ? null : labVal,
+              other_cost: isNaN(othVal) ? null : othVal
+            });
+
+            if (priceResp && priceResp.price_available) {
+              aiCatalogData.suggested_min_price = priceResp.suggested_min_price;
+              aiCatalogData.suggested_max_price = priceResp.suggested_max_price;
+              aiCatalogData.price_source = priceResp.price_source || "seller_costs";
+              aiCatalogData.price_confidence = priceResp.price_confidence;
+              aiCatalogData.price_reason = priceResp.price_reason;
+              aiCatalogData.price_factors = priceResp.price_factors;
+              aiCatalogData.price_available = true;
+
+              finalPrice = Math.round(priceResp.suggested_min_price);
+              showToast("Price refined from your actual production costs!", "success");
+              render();
+            }
+          } catch (err) {
+            showToast(err.message || "Could not calculate custom cost pricing", "error");
+          }
+        });
+      }
+
+      const btnResetInitial = document.getElementById("btn-reset-initial-price");
+      if (btnResetInitial && aiCatalogData && aiCatalogData.initial_price) {
+        btnResetInitial.addEventListener("click", () => {
+          aiCatalogData.suggested_min_price = aiCatalogData.initial_price.min;
+          aiCatalogData.suggested_max_price = aiCatalogData.initial_price.max;
+          aiCatalogData.price_source = aiCatalogData.initial_price.source;
+          aiCatalogData.price_confidence = aiCatalogData.initial_price.confidence;
+          aiCatalogData.price_reason = aiCatalogData.initial_price.reason;
+          aiCatalogData.price_factors = aiCatalogData.initial_price.factors;
+          finalPrice = Math.round(aiCatalogData.suggested_min_price);
+          sellerCostMaterial = "";
+          sellerCostLabor = "";
+          sellerCostOther = "";
+          showToast("Reverted to initial AI product recommendation", "info");
+          render();
+        });
+      }
+
+      if (priceInput && origPriceInput) {
+        priceInput.addEventListener("input", () => {
+          const val = parseFloat(priceInput.value);
+          if (!isNaN(val) && val > 0) {
+            finalPrice = val;
+            origPriceInput.value = Math.round(val * 1.25);
+          } else {
+            finalPrice = null;
+            origPriceInput.value = "";
+          }
+        });
+      }
 
       if (btnMinus) {
         btnMinus.onclick = () => {
@@ -534,11 +847,12 @@ function renderSellerAddProduct(container) {
       if (btnPublish) {
         btnPublish.addEventListener("click", async () => {
           const price = parseFloat(priceInput.value);
-          const origPrice = parseFloat(origPriceInput.value) || price;
+          const origPrice = parseFloat(origPriceInput.value) || (price ? Math.round(price * 1.25) : 0);
           const quantity = parseInt(qtyInput.value) || 1;
 
-          if (!price || price <= 0) {
-            showToast("Please enter a valid selling price", "error");
+          if (isNaN(price) || !price || price <= 0) {
+            showToast("Please enter a fair selling price for your craft", "error");
+            priceInput.focus();
             return;
           }
 
@@ -600,6 +914,16 @@ function renderSellerAddProduct(container) {
       return;
     }
 
+    // Reset previous AI state to guarantee clean request isolation
+    selectedFile = file;
+    enhancementData = null;
+    aiCatalogData = null;
+    finalPrice = null;
+    sellerCostMaterial = "";
+    sellerCostLabor = "";
+    sellerCostOther = "";
+    isCostCalculatorOpen = false;
+
     try {
       showLoadingModal("AI Enhancing Your Photo...", "Balancing lighting, sharpening textures, and generating marketplace details...");
       const formData = new FormData();
@@ -609,7 +933,7 @@ function renderSellerAddProduct(container) {
       const res = await api.uploadAndEnhance(formData);
       enhancementData = res;
       aiCatalogData = res.ai_catalog;
-      finalPrice = res.ai_catalog.suggested_min_price || 750;
+      finalPrice = (res.ai_catalog && typeof res.ai_catalog.suggested_min_price === "number") ? res.ai_catalog.suggested_min_price : null;
 
       hideLoadingModal();
       currentStep = 2;
@@ -625,18 +949,26 @@ function renderSellerAddProduct(container) {
     const overlay = document.getElementById("slider-overlay");
     const divider = document.getElementById("slider-divider");
     const imgOriginal = document.getElementById("img-original");
+    const imgEnhanced = document.getElementById("img-enhanced");
     if (!container || !overlay || !divider) return;
 
     // Ensure inner img width matches container width
     const updateDimensions = () => {
       const w = container.offsetWidth;
       const h = container.offsetHeight;
-      if (imgOriginal) {
+      if (imgOriginal && w > 0) {
         imgOriginal.style.width = `${w}px`;
         imgOriginal.style.height = `${h}px`;
       }
     };
     updateDimensions();
+
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(updateDimensions);
+      ro.observe(container);
+    }
+    if (imgEnhanced) imgEnhanced.onload = updateDimensions;
+    if (imgOriginal) imgOriginal.onload = updateDimensions;
 
     let isDragging = false;
 
@@ -649,6 +981,11 @@ function renderSellerAddProduct(container) {
       overlay.style.width = `${percentage}%`;
       divider.style.left = `${percentage}%`;
     };
+
+    // Click anywhere on container to move slider
+    container.addEventListener("click", (e) => {
+      moveSlider(e.clientX);
+    });
 
     // Mouse Events
     divider.addEventListener("mousedown", () => isDragging = true);

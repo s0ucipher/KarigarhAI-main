@@ -46,7 +46,7 @@ export default function ImageStudio({ navigation, route }) {
             <Text style={styles.label}>✨ AI Enhanced</Text>
             <Image source={{ uri: imgUrl(enh.enhanced_url) }} style={styles.img} />
             <Text style={styles.metrics}>
-              {enh.metrics?.lighting_improvement || '+24% lighting'} · {enh.metrics?.sharpness_gain || '+35% clarity'} · {enh.metrics?.studio_grade || 'Marketplace grade'}
+              {enh.metrics?.lighting_improvement || 'Balanced lighting'} · {enh.metrics?.sharpness_gain || 'Clarity preserved'} · {enh.metrics?.studio_grade || 'Marketplace ready'}
             </Text>
           </>
         )}

@@ -324,6 +324,13 @@ class ApiClient {
     });
   }
 
+  async calculatePrice(priceData) {
+    return await this.request("/api/ai/calculate-price", {
+      method: "POST",
+      body: priceData
+    });
+  }
+
   // =========================================================
   // CART
   // =========================================================

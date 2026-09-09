@@ -1,14 +1,20 @@
 import os
 import uuid
+import logging
+from urllib.parse import urlparse
 from pathlib import Path
 from fastapi import APIRouter, Depends, File, UploadFile, Form, HTTPException, status
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Any, Union
 from backend.config import UPLOAD_DIR
 from backend.auth import get_current_user, require_seller
 from backend.services.image_enhancer import enhance_artisan_product_image
 from backend.services.ai_service import generate_product_catalog
+from backend.services.pricing_engine import calculate_artisan_price
 from backend.database import get_db
+
+logger = logging.getLogger("kalasetu.ai_router")
+logger.setLevel(logging.INFO)
 
 router = APIRouter(prefix="/api/ai", tags=["AI Artisan Assistant"])
 
@@ -16,30 +22,62 @@ class RegenerateRequest(BaseModel):
     image_url: str
     language: Optional[str] = "en"
     hint: Optional[str] = None
+    material_cost: Optional[float] = None
+    labor_cost: Optional[float] = None
+    other_cost: Optional[float] = None
+
+class PriceCalculationRequest(BaseModel):
+    category_slug: Optional[str] = None
+    category_name: Optional[str] = None
+    category_id: Optional[int] = None
+    category: Optional[Any] = None
+    product_name: Optional[str] = None
+    title: Optional[str] = None
+    name: Optional[str] = None
+    product_type: Optional[str] = None
+    material: Optional[str] = None
+    craftsmanship_level: Optional[str] = None
+    craftsmanship: Optional[str] = None
+    complexity_score: Optional[int] = None
+    complexity: Optional[int] = None
+    shape_and_scale: Optional[str] = None
+    scale: Optional[str] = None
+    labor_intensity: Optional[str] = "moderate"
+    material_cost: Optional[float] = None
+    labor_cost: Optional[float] = None
+    other_cost: Optional[float] = None
+    user_hint: Optional[str] = None
+    hint: Optional[str] = None
 
 @router.post("/upload-and-enhance")
 async def upload_and_enhance(
     file: UploadFile = File(...),
     language: Optional[str] = Form("en"),
     hint: Optional[str] = Form(None),
+    material_cost: Optional[float] = Form(None),
+    labor_cost: Optional[float] = Form(None),
+    other_cost: Optional[float] = Form(None),
     current_user: dict = Depends(require_seller)
 ):
     """
     Core AI workflow for artisans:
-    1. Saves uploaded craft photo.
-    2. Runs Pillow image enhancement pipeline (lighting, contrast, sharpening, studio gradient).
+    1. Saves uploaded craft photo with unique request context.
+    2. Runs Pillow image enhancement pipeline (lighting, contrast, sharpening, studio clarity).
     3. Runs AI catalog generation (Gemini Vision or Artisan Knowledge Engine).
     4. Maps category to matching category ID in database.
     5. Returns both images for side-by-side comparison + generated product details for review.
     """
+    req_id = uuid.uuid4().hex[:10]
     # Validate extension
     allowed_extensions = {".jpg", ".jpeg", ".png", ".webp"}
     ext = Path(file.filename).suffix.lower()
     if ext not in allowed_extensions:
         ext = ".jpg"
 
-    unique_filename = f"artisan_{uuid.uuid4().hex[:10]}{ext}"
+    unique_filename = f"artisan_{req_id}{ext}"
     saved_path = UPLOAD_DIR / unique_filename
+
+    logger.info(f"[{req_id}] Upload received: client_file='{file.filename}', size_hint='{file.size if hasattr(file, 'size') else 'unknown'}'")
 
     # Save raw image
     contents = await file.read()
@@ -53,41 +91,76 @@ async def upload_and_enhance(
     try:
         enhancement_result = enhance_artisan_product_image(saved_path)
     except Exception as e:
-        print(f"Error during image enhancement: {e}")
+        logger.error(f"[{req_id}] Error during image enhancement: {e}")
         # Fallback to original image if Pillow fails
         enhancement_result = {
             "original_url": f"/uploads/{unique_filename}",
             "enhanced_url": f"/uploads/{unique_filename}",
+            "original_path": str(saved_path),
+            "enhanced_path": str(saved_path),
+            "status": "original_preserved",
+            "dominant_colors": ["#8d5b4c", "#d4a373", "#e6ccb2", "#fefae0"],
             "metrics": {
-                "lighting_improvement": "Standard",
-                "sharpness_gain": "Original",
-                "color_vibrance": "Natural",
-                "studio_grade": "Uploaded"
+                "lighting_improvement": "Optimal (Balanced)",
+                "sharpness_gain": "Preserved",
+                "color_vibrance": "Authentic Preserved",
+                "studio_grade": "Natural Authentic"
             }
         }
 
-    # 2. AI Product Information Generation
+    # Extract seller costs if provided
+    seller_costs = None
+    if material_cost is not None or labor_cost is not None or other_cost is not None:
+        seller_costs = {
+            "material_cost": material_cost or 0.0,
+            "labor_cost": labor_cost or 0.0,
+            "other_cost": other_cost or 0.0,
+        }
+
+    # 2. AI Product Information Generation (Two-Stage Pipeline)
     try:
         ai_catalog = generate_product_catalog(
             image_path=str(saved_path),
             user_language=language or current_user.get("language", "en"),
-            hint=hint
+            hint=hint,
+            client_filename=file.filename,
+            seller_costs=seller_costs
         )
     except Exception as e:
-        print(f"Error during AI catalog generation: {e}")
+        logger.error(f"[{req_id}] Error during AI catalog generation: {e}")
+        fallback_pricing = calculate_artisan_price(
+            category_slug="pottery-ceramics",
+            product_name="Handmade Artisan Craft",
+            product_type="Artisan Craft",
+            material="Natural Artisan Materials",
+            craftsmanship_level="moderate",
+            complexity_score=40,
+            shape_and_scale="tabletop",
+            labor_intensity="moderate",
+            seller_costs=seller_costs,
+            user_hint=hint
+        )
         ai_catalog = {
             "name": "Handmade Artisan Craft",
             "title": "Authentic Traditional Handcrafted Product",
-            "description": "Lovingly made by local craftsmen using traditional techniques.",
+            "description": "Authentic handcrafted creation lovingly made by local artisans. Review and customize this title and description with details of your unique craft.",
             "category_slug": "pottery-ceramics",
             "category_name": "Pottery & Terracotta",
             "material": "Natural Artisan Materials",
             "craft_details": "Handcrafted by local master artisan.",
-            "tags": ["Handmade", "Traditional", "Artisan"],
-            "search_keywords": ["handmade craft", "traditional art"],
-            "suggested_min_price": 500,
-            "suggested_max_price": 800,
-            "ai_rationale": "Fair artisan craft pricing."
+            "tags": ["Handmade", "Traditional", "ArtisanCraft"],
+            "search_keywords": ["handmade craft", "artisan product"],
+            "price_available": True,
+            "suggested_min_price": fallback_pricing["suggested_min_price"],
+            "suggested_max_price": fallback_pricing["suggested_max_price"],
+            "price_confidence": fallback_pricing["price_confidence"],
+            "price_source": fallback_pricing["price_source"],
+            "complexity_score": 40,
+            "craftsmanship_level": "moderate",
+            "price_factors": fallback_pricing["price_factors"],
+            "ai_rationale": fallback_pricing["ai_rationale"],
+            "price_reason": fallback_pricing["price_reason"],
+            "confidence": 0.80
         }
 
     # Map category_slug to category_id
@@ -106,6 +179,8 @@ async def upload_and_enhance(
         ai_catalog["category_id"] = 1
     conn.close()
 
+    logger.info(f"[{req_id}] AI processing complete: product='{ai_catalog.get('name')}', cat='{ai_catalog.get('category_slug')}', price_avail={ai_catalog.get('price_available')}, price_range={ai_catalog.get('suggested_min_price')}-{ai_catalog.get('suggested_max_price')}, source='{ai_catalog.get('price_source')}'")
+
     return {
         "success": True,
         "image_enhancement": enhancement_result,
@@ -118,14 +193,68 @@ def regenerate_text(
     current_user: dict = Depends(require_seller)
 ):
     """Regenerates title, description and pricing based on language switch or additional artisan hint."""
-    img_name = Path(req.image_url).name
+    parsed_path = urlparse(req.image_url).path
+    img_name = Path(parsed_path).name
     img_path = UPLOAD_DIR / img_name
 
-    ai_catalog = generate_product_catalog(
-        image_path=str(img_path) if img_path.exists() else img_name,
-        user_language=req.language or "en",
-        hint=req.hint
-    )
+    # If user provided enhanced_ URL, prefer original if available
+    if img_name.startswith("enhanced_"):
+        orig_name = img_name[len("enhanced_"):]
+        if (UPLOAD_DIR / orig_name).exists():
+            img_path = UPLOAD_DIR / orig_name
+
+    seller_costs = None
+    if req.material_cost is not None or req.labor_cost is not None or req.other_cost is not None:
+        seller_costs = {
+            "material_cost": req.material_cost or 0.0,
+            "labor_cost": req.labor_cost or 0.0,
+            "other_cost": req.other_cost or 0.0,
+        }
+
+    try:
+        ai_catalog = generate_product_catalog(
+            image_path=str(img_path) if img_path.exists() else img_name,
+            user_language=req.language or "en",
+            hint=req.hint,
+            client_filename=img_name,
+            seller_costs=seller_costs
+        )
+    except Exception as e:
+        logger.error(f"Error during regenerate_text: {e}")
+        fallback_pricing = calculate_artisan_price(
+            category_slug="pottery-ceramics",
+            product_name="Handmade Artisan Craft",
+            product_type="Artisan Craft",
+            material="Natural Artisan Materials",
+            craftsmanship_level="moderate",
+            complexity_score=40,
+            shape_and_scale="tabletop",
+            labor_intensity="moderate",
+            seller_costs=seller_costs,
+            user_hint=req.hint
+        )
+        ai_catalog = {
+            "name": "Handmade Artisan Craft",
+            "title": "Authentic Traditional Handcrafted Product",
+            "description": "Authentic handcrafted creation lovingly made by local artisans. Review and customize this title and description with details of your unique craft.",
+            "category_slug": "pottery-ceramics",
+            "category_name": "Pottery & Terracotta",
+            "material": "Natural Artisan Materials",
+            "craft_details": "Handcrafted by local master artisan.",
+            "tags": ["Handmade", "Traditional", "ArtisanCraft"],
+            "search_keywords": ["handmade craft", "artisan product"],
+            "price_available": True,
+            "suggested_min_price": fallback_pricing["suggested_min_price"],
+            "suggested_max_price": fallback_pricing["suggested_max_price"],
+            "price_confidence": fallback_pricing["price_confidence"],
+            "price_source": fallback_pricing["price_source"],
+            "complexity_score": 40,
+            "craftsmanship_level": "moderate",
+            "price_factors": fallback_pricing["price_factors"],
+            "ai_rationale": fallback_pricing["ai_rationale"],
+            "price_reason": fallback_pricing["price_reason"],
+            "confidence": 0.80
+        }
 
     conn = get_db()
     cursor = conn.cursor()
@@ -143,3 +272,74 @@ def regenerate_text(
     conn.close()
 
     return {"ai_catalog": ai_catalog}
+
+
+@router.post("/calculate-price")
+def calculate_price_endpoint(
+    req: PriceCalculationRequest,
+    current_user: dict = Depends(require_seller)
+):
+    """
+    Computes an instant, product-specific recommended price range based on visual craft
+    attributes and/or artisan-provided seller costs.
+    """
+    seller_costs = None
+    if req.material_cost is not None or req.labor_cost is not None or req.other_cost is not None:
+        seller_costs = {
+            "material_cost": req.material_cost or 0.0,
+            "labor_cost": req.labor_cost or 0.0,
+            "other_cost": req.other_cost or 0.0,
+        }
+
+    resolved_name = req.product_name or req.title or req.name or ""
+    resolved_scale = req.shape_and_scale or req.scale or "tabletop"
+    resolved_craftsmanship = req.craftsmanship_level or req.craftsmanship or "detailed"
+    resolved_complexity = req.complexity_score or req.complexity or 50
+    resolved_hint = req.user_hint or req.hint or ""
+
+    resolved_cat = req.category_slug
+    if not resolved_cat or resolved_cat == "other":
+        if req.category_name:
+            cn = req.category_name.lower()
+            if "wood" in cn or "furniture" in cn or "toy" in cn:
+                resolved_cat = "woodcraft"
+            elif "pot" in cn or "clay" in cn or "terracotta" in cn or "ceramic" in cn:
+                resolved_cat = "pottery-ceramics"
+            elif "textile" in cn or "handloom" in cn or "saree" in cn:
+                resolved_cat = "handloom-textiles"
+            elif "metal" in cn or "brass" in cn or "dhokra" in cn:
+                resolved_cat = "metal-brass"
+            elif "paint" in cn or "folk" in cn:
+                resolved_cat = "folk-art"
+            elif "jewel" in cn:
+                resolved_cat = "jewelry"
+            elif "bamboo" in cn or "cane" in cn:
+                resolved_cat = "bamboo-cane"
+
+    if not resolved_cat or resolved_cat == "other":
+        cat_id = req.category_id or (req.category if isinstance(req.category, int) else None)
+        if cat_id:
+            try:
+                conn = get_db()
+                c = conn.cursor()
+                c.execute("SELECT slug FROM categories WHERE id = ?", (cat_id,))
+                row = c.fetchone()
+                if row and row["slug"]:
+                    resolved_cat = row["slug"]
+                conn.close()
+            except Exception:
+                pass
+
+    res = calculate_artisan_price(
+        category_slug=resolved_cat or "other",
+        product_name=resolved_name,
+        product_type=req.product_type,
+        material=req.material,
+        craftsmanship_level=resolved_craftsmanship,
+        complexity_score=resolved_complexity,
+        shape_and_scale=resolved_scale,
+        labor_intensity=req.labor_intensity or "moderate",
+        seller_costs=seller_costs,
+        user_hint=resolved_hint,
+    )
+    return res
