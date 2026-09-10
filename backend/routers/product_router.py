@@ -186,7 +186,7 @@ def create_product(req: ProductCreateRequest, current_user: dict = Depends(requi
     """, (
         seller_id, req.name.strip(), req.title.strip(), req.description.strip(),
         req.category_id, req.material, req.craft_details, tags_json,
-        req.price, req.original_price or req.price, req.quantity,
+        req.price, req.original_price if req.original_price is not None else None, req.quantity,
         req.original_image_url, req.enhanced_image_url or req.original_image_url,
         ai_meta_json
     ))

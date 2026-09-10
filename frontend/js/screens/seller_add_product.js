@@ -4,7 +4,11 @@ function renderSellerAddProduct(container) {
   let currentStep = 1; // 1: Photo, 2: AI Enhance & Compare, 3: AI Details, 4: Pricing & Stock, 5: Success
   let selectedFile = null;
   let enhancementData = null;
+  let aiCatalogData = null;
   let finalPrice = null;
+  let originalMarketValue = null;
+  let isSellingPriceUserEdited = false;
+  let isOriginalPriceUserEdited = false;
   let finalQuantity = 5;
   let sellerCostMaterial = "";
   let sellerCostLabor = "";
@@ -332,6 +336,13 @@ function renderSellerAddProduct(container) {
       const minP = hasPrice ? Math.round(cat.suggested_min_price) : null;
       const maxP = hasPrice ? Math.round(cat.suggested_max_price) : null;
 
+      if (finalPrice === null && !isSellingPriceUserEdited && minP) {
+        finalPrice = minP;
+      }
+      if (originalMarketValue === null && !isOriginalPriceUserEdited && finalPrice) {
+        originalMarketValue = Math.round(finalPrice * 1.25);
+      }
+
       const isRefined = (cat.price_source === "seller_costs" || cat.price_source === "artisan_cost_plus");
       let sourceBadge = "AI Product Analysis";
       let sourceIcon = "fa-chart-line";
@@ -483,8 +494,8 @@ function renderSellerAddProduct(container) {
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-lg font-bold text-stone-500 pointer-events-none">₹</span>
                 <input type="number" id="input-selling-price" 
-                       value="${finalPrice !== null && finalPrice !== undefined ? finalPrice : (hasPrice ? minP : '')}" 
-                       placeholder="${hasPrice ? minP : 'Enter your selling price in ₹'}" 
+                       value="${finalPrice !== null && finalPrice !== undefined ? finalPrice : ''}" 
+                       placeholder="${hasPrice && minP ? minP : 'Enter your selling price in ₹'}" 
                        min="10" step="10"
                        class="w-full pl-9 pr-3 py-3 text-lg font-black text-stone-900 rounded-2xl border-2 border-stone-300 focus:border-amber-700 focus:outline-none">
               </div>
@@ -497,8 +508,8 @@ function renderSellerAddProduct(container) {
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-sm font-bold text-stone-400 pointer-events-none">₹</span>
                 <input type="number" id="input-original-price" 
-                       value="${finalPrice ? Math.round(finalPrice * 1.25) : (hasPrice && minP ? Math.round(minP * 1.25) : '')}" 
-                       placeholder="${hasPrice && minP ? Math.round(minP * 1.25) : 'MRP (optional)'}" 
+                       value="${originalMarketValue !== null && originalMarketValue !== undefined ? originalMarketValue : ''}" 
+                       placeholder="MRP (optional)" 
                        min="10"
                        class="w-full pl-9 pr-3 py-2 text-sm font-semibold text-stone-600 rounded-xl border border-stone-200">
               </div>
@@ -713,7 +724,12 @@ function renderSellerAddProduct(container) {
             }
 
             if (Boolean(aiCatalogData.price_available) && typeof aiCatalogData.suggested_min_price === "number" && aiCatalogData.suggested_min_price > 0) {
-              finalPrice = Math.round(aiCatalogData.suggested_min_price);
+              if (!isSellingPriceUserEdited) {
+                finalPrice = Math.round(aiCatalogData.suggested_min_price);
+              }
+              if (!isOriginalPriceUserEdited && finalPrice) {
+                originalMarketValue = Math.round(finalPrice * 1.25);
+              }
             } else if (finalPrice !== null && finalPrice !== undefined && finalPrice > 0) {
               // Retain artisan's manually entered price
             } else {
@@ -790,7 +806,12 @@ function renderSellerAddProduct(container) {
               aiCatalogData.price_factors = priceResp.price_factors;
               aiCatalogData.price_available = true;
 
-              finalPrice = Math.round(priceResp.suggested_min_price);
+              if (!isSellingPriceUserEdited) {
+                finalPrice = Math.round(priceResp.suggested_min_price);
+              }
+              if (!isOriginalPriceUserEdited) {
+                originalMarketValue = Math.round(priceResp.suggested_min_price * 1.25);
+              }
               showToast("Price refined from your actual production costs!", "success");
               render();
             }
@@ -809,7 +830,12 @@ function renderSellerAddProduct(container) {
           aiCatalogData.price_confidence = aiCatalogData.initial_price.confidence;
           aiCatalogData.price_reason = aiCatalogData.initial_price.reason;
           aiCatalogData.price_factors = aiCatalogData.initial_price.factors;
-          finalPrice = Math.round(aiCatalogData.suggested_min_price);
+          if (!isSellingPriceUserEdited) {
+            finalPrice = Math.round(aiCatalogData.initial_price.min);
+          }
+          if (!isOriginalPriceUserEdited) {
+            originalMarketValue = Math.round(aiCatalogData.initial_price.min * 1.25);
+          }
           sellerCostMaterial = "";
           sellerCostLabor = "";
           sellerCostOther = "";
@@ -818,15 +844,32 @@ function renderSellerAddProduct(container) {
         });
       }
 
-      if (priceInput && origPriceInput) {
+      if (priceInput) {
         priceInput.addEventListener("input", () => {
           const val = parseFloat(priceInput.value);
           if (!isNaN(val) && val > 0) {
             finalPrice = val;
-            origPriceInput.value = Math.round(val * 1.25);
+            isSellingPriceUserEdited = true;
           } else {
             finalPrice = null;
-            origPriceInput.value = "";
+            if (priceInput.value.trim() === "") {
+              isSellingPriceUserEdited = true;
+            }
+          }
+        });
+      }
+
+      if (origPriceInput) {
+        origPriceInput.addEventListener("input", () => {
+          const val = parseFloat(origPriceInput.value);
+          if (!isNaN(val) && val > 0) {
+            originalMarketValue = val;
+            isOriginalPriceUserEdited = true;
+          } else {
+            originalMarketValue = null;
+            if (origPriceInput.value.trim() === "") {
+              isOriginalPriceUserEdited = true;
+            }
           }
         });
       }
@@ -847,7 +890,8 @@ function renderSellerAddProduct(container) {
       if (btnPublish) {
         btnPublish.addEventListener("click", async () => {
           const price = parseFloat(priceInput.value);
-          const origPrice = parseFloat(origPriceInput.value) || (price ? Math.round(price * 1.25) : 0);
+          const origPriceVal = origPriceInput ? origPriceInput.value.trim() : "";
+          const origPrice = origPriceVal !== "" && !isNaN(parseFloat(origPriceVal)) ? parseFloat(origPriceVal) : null;
           const quantity = parseInt(qtyInput.value) || 1;
 
           if (isNaN(price) || !price || price <= 0) {
@@ -919,6 +963,9 @@ function renderSellerAddProduct(container) {
     enhancementData = null;
     aiCatalogData = null;
     finalPrice = null;
+    originalMarketValue = null;
+    isSellingPriceUserEdited = false;
+    isOriginalPriceUserEdited = false;
     sellerCostMaterial = "";
     sellerCostLabor = "";
     sellerCostOther = "";
@@ -933,7 +980,13 @@ function renderSellerAddProduct(container) {
       const res = await api.uploadAndEnhance(formData);
       enhancementData = res;
       aiCatalogData = res.ai_catalog;
-      finalPrice = (res.ai_catalog && typeof res.ai_catalog.suggested_min_price === "number") ? res.ai_catalog.suggested_min_price : null;
+      if (res.ai_catalog && typeof res.ai_catalog.suggested_min_price === "number") {
+        finalPrice = Math.round(res.ai_catalog.suggested_min_price);
+        originalMarketValue = Math.round(finalPrice * 1.25);
+      } else {
+        finalPrice = null;
+        originalMarketValue = null;
+      }
 
       hideLoadingModal();
       currentStep = 2;
