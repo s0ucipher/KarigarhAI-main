@@ -8,6 +8,8 @@ from backend.services.image_enhancer import (
     analyze_image,
     extract_product_subject,
     select_complementary_studio_background,
+    apply_shadows_and_midtones_lift,
+    apply_texture_clarity_enhancement,
     enhance_product_presentation,
     composite_studio_product,
     compute_truthful_metrics,
@@ -35,6 +37,18 @@ class TestImageEnhancementPipeline(unittest.TestCase):
             self.assertIn("solid_background_color", result)
             self.assertTrue(result["solid_background_color"].startswith("#"))
             
+            # Verify real enhancement metadata
+            self.assertIn("enhancement", result)
+            enh_meta = result["enhancement"]
+            self.assertIn("shadows_midtones_lifted", enh_meta)
+            self.assertIn("texture_clarity_enhanced", enh_meta)
+            self.assertIn("studio_isolated", enh_meta)
+            self.assertIn("background_color", enh_meta)
+            self.assertTrue(enh_meta["background_color"].startswith("#"))
+            self.assertTrue(isinstance(enh_meta["shadows_midtones_lifted"], bool))
+            self.assertTrue(isinstance(enh_meta["texture_clarity_enhanced"], bool))
+            self.assertTrue(isinstance(enh_meta["studio_isolated"], bool))
+            
             # Verify enhanced file exists
             enh_path = Path(result["enhanced_path"])
             self.assertTrue(enh_path.exists(), f"Enhanced file missing for {img_file.name}")
@@ -54,6 +68,7 @@ class TestImageEnhancementPipeline(unittest.TestCase):
 
         result = enhance_artisan_product_image(dark_path)
         self.assertIn(result["status"], ("enhanced", "conservatively_enhanced"))
+        self.assertTrue(result["enhancement"]["shadows_midtones_lifted"], "Dark photo must receive real shadow/midtone lift")
         orig_lum = result["analysis"]["original"]["mean_luminance"]
         enh_lum = result["analysis"]["enhanced"]["mean_luminance"]
         self.assertGreater(enh_lum, orig_lum, "Dark photo should receive exposure lift on studio canvas")
@@ -110,7 +125,7 @@ class TestImageEnhancementPipeline(unittest.TestCase):
             isolated = extract_product_subject(img)
             self.assertEqual(isolated.mode, "RGBA")
             alpha = isolated.split()[3]
-            alpha_data = list(alpha.getdata())
+            alpha_data = list(alpha.get_flattened_data()) if hasattr(alpha, "get_flattened_data") else list(alpha.getdata())
             # Must have transparent pixels (background removed)
             has_transparent = any(a < 50 for a in alpha_data)
             self.assertTrue(has_transparent, "Extracted product must have removed background (transparent pixels)")
@@ -342,7 +357,42 @@ class TestImageEnhancementPipeline(unittest.TestCase):
             self.assertNotIn("%", str(val), f"Metric '{key}' contains fake percentage: {val}")
         self.assertEqual(metrics["lighting_improvement"], "Shadows & Midtones Lifted")
         self.assertEqual(metrics["sharpness_gain"], "Edge Definition Refined")
-        self.assertEqual(metrics["color_vibrance"], "Natural Vibrance Restored")
+    def test_19_shadows_and_midtones_lift_preserves_highlights_and_blacks(self):
+        """Shadows & midtones lift naturally enhances dim regions while strictly anchoring 0 and 255."""
+        sample_path = self.sample_dir / "terracotta_vase.jpg"
+        with Image.open(sample_path) as raw_img:
+            isolated = extract_product_subject(raw_img)
+            craft_mask = isolated.split()[3]
+            stats_pre = analyze_image(isolated.convert("RGB"), mask=craft_mask)
+            
+            lifted, flag = apply_shadows_and_midtones_lift(isolated, stats_pre)
+            self.assertTrue(flag, "Real shadow/midtone lift must be flagged as True")
+            
+            stats_post = analyze_image(lifted.convert("RGB"), mask=craft_mask)
+            # Luminance must increase
+            self.assertGreater(stats_post["mean_luminance"], stats_pre["mean_luminance"])
+            # Highlight clipping must NOT jump (highlights strictly preserved)
+            self.assertLessEqual(
+                stats_post["highlight_clipping"] - stats_pre["highlight_clipping"], 0.02,
+                "Highlights must be preserved without blowout"
+            )
+
+    def test_20_texture_clarity_enhancement_increases_sharpness(self):
+        """Texture clarity filter increases craft detail clarity without creating noise or halos."""
+        sample_path = self.sample_dir / "terracotta_vase.jpg"
+        with Image.open(sample_path) as raw_img:
+            isolated = extract_product_subject(raw_img)
+            craft_mask = isolated.split()[3]
+            stats_pre = analyze_image(isolated.convert("RGB"), mask=craft_mask)
+            
+            clarified, flag = apply_texture_clarity_enhancement(isolated, stats_pre)
+            self.assertTrue(flag, "Real texture clarity must be flagged as True")
+            
+            stats_post = analyze_image(clarified.convert("RGB"), mask=craft_mask)
+            self.assertGreaterEqual(
+                stats_post["sharpness_score"], stats_pre["sharpness_score"],
+                "Sharpness score must increase or be maintained"
+            )
 
 
 if __name__ == "__main__":

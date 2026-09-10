@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 from pathlib import Path
 from fastapi import APIRouter, Depends, File, UploadFile, Form, HTTPException, status
 from pydantic import BaseModel
-from typing import Optional, Any, Union
+from typing import Optional, Any, Union, List
 from backend.config import UPLOAD_DIR
 from backend.auth import get_current_user, require_seller
 from backend.services.image_enhancer import enhance_artisan_product_image
@@ -51,7 +51,8 @@ class PriceCalculationRequest(BaseModel):
 
 @router.post("/upload-and-enhance")
 async def upload_and_enhance(
-    file: UploadFile = File(...),
+    files: Optional[List[UploadFile]] = File(None),
+    file: Optional[UploadFile] = File(None),
     language: Optional[str] = Form("en"),
     hint: Optional[str] = Form(None),
     material_cost: Optional[float] = Form(None),
@@ -61,52 +62,67 @@ async def upload_and_enhance(
 ):
     """
     Core AI workflow for artisans:
-    1. Saves uploaded craft photo with unique request context.
-    2. Runs Pillow image enhancement pipeline (lighting, contrast, sharpening, studio clarity).
-    3. Runs AI catalog generation (Gemini Vision or Artisan Knowledge Engine).
+    1. Saves uploaded craft photos (1 to 5 photos) with unique request context.
+    2. Runs Pillow image enhancement pipeline on each photo individually.
+    3. Runs AI catalog generation using the primary product photo.
     4. Maps category to matching category ID in database.
     5. Returns both images for side-by-side comparison + generated product details for review.
     """
     req_id = uuid.uuid4().hex[:10]
-    # Validate extension
+
+    # Consolidate files from both `files` and `file` inputs
+    uploaded_files: List[UploadFile] = []
+    if files:
+        uploaded_files.extend(files)
+    if file:
+        if not any(f.filename == file.filename for f in uploaded_files):
+            uploaded_files.append(file)
+
+    # Validate upload limits (1 to 5 photos)
+    if not uploaded_files:
+        raise HTTPException(status_code=400, detail="Please upload at least 1 product photo.")
+
+    # Enforce maximum 5 photos limit; prevent additional photos beyond 5
+    if len(uploaded_files) > 5:
+        logger.info(f"[{req_id}] User provided {len(uploaded_files)} photos; preventing additional photos beyond 5.")
+        uploaded_files = uploaded_files[:5]
+
     allowed_extensions = {".jpg", ".jpeg", ".png", ".webp"}
-    ext = Path(file.filename).suffix.lower()
-    if ext not in allowed_extensions:
-        ext = ".jpg"
+    enhancement_results = []
+    primary_saved_path = None
+    primary_filename = None
 
-    unique_filename = f"artisan_{req_id}{ext}"
-    saved_path = UPLOAD_DIR / unique_filename
+    for idx, f in enumerate(uploaded_files):
+        ext = Path(f.filename).suffix.lower()
+        if ext not in allowed_extensions:
+            ext = ".jpg"
 
-    logger.info(f"[{req_id}] Upload received: client_file='{file.filename}', size_hint='{file.size if hasattr(file, 'size') else 'unknown'}'")
+        unique_filename = f"artisan_{req_id}_{idx}{ext}"
+        saved_path = UPLOAD_DIR / unique_filename
 
-    # Save raw image
-    contents = await file.read()
-    if len(contents) > 20 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Image file exceeds 20MB limit")
+        logger.info(f"[{req_id}] Processing photo {idx+1}/{len(uploaded_files)}: client_file='{f.filename}', size_hint='{f.size if hasattr(f, 'size') else 'unknown'}'")
 
-    with open(saved_path, "wb") as f:
-        f.write(contents)
+        contents = await f.read()
+        if len(contents) > 20 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail=f"Image file '{f.filename}' exceeds 20MB limit")
 
-    # 1. AI Image Enhancement
-    try:
-        enhancement_result = enhance_artisan_product_image(saved_path)
-    except Exception as e:
-        logger.error(f"[{req_id}] Error during image enhancement: {e}")
-        # Fallback to original image if Pillow fails
-        enhancement_result = {
-            "original_url": f"/uploads/{unique_filename}",
-            "enhanced_url": f"/uploads/{unique_filename}",
-            "original_path": str(saved_path),
-            "enhanced_path": str(saved_path),
-            "status": "original_preserved",
-            "dominant_colors": ["#8d5b4c", "#d4a373", "#e6ccb2", "#fefae0"],
-            "metrics": {
-                "lighting_improvement": "Optimal (Balanced)",
-                "sharpness_gain": "Preserved",
-                "color_vibrance": "Authentic Preserved",
-                "studio_grade": "Natural Authentic"
-            }
-        }
+        with open(saved_path, "wb") as out_f:
+            out_f.write(contents)
+
+        if idx == 0:
+            primary_saved_path = saved_path
+            primary_filename = f.filename
+
+        # 1. AI Image Enhancement for each individual photo
+        try:
+            enh_res = enhance_artisan_product_image(saved_path)
+            enhancement_results.append(enh_res)
+        except Exception as e:
+            logger.error(f"[{req_id}] Error during image enhancement for photo {idx+1}: {e}")
+            raise HTTPException(
+                status_code=422,
+                detail=f"Image enhancement could not be completed for photo {idx+1}. Please try another photo."
+            )
 
     # Extract seller costs if provided
     seller_costs = None
@@ -117,13 +133,13 @@ async def upload_and_enhance(
             "other_cost": other_cost or 0.0,
         }
 
-    # 2. AI Product Information Generation (Two-Stage Pipeline)
+    # 2. AI Product Information Generation (Two-Stage Pipeline using primary photo)
     try:
         ai_catalog = generate_product_catalog(
-            image_path=str(saved_path),
+            image_path=str(primary_saved_path),
             user_language=language or current_user.get("language", "en"),
             hint=hint,
-            client_filename=file.filename,
+            client_filename=primary_filename,
             seller_costs=seller_costs
         )
     except Exception as e:
@@ -179,11 +195,12 @@ async def upload_and_enhance(
         ai_catalog["category_id"] = 1
     conn.close()
 
-    logger.info(f"[{req_id}] AI processing complete: product='{ai_catalog.get('name')}', cat='{ai_catalog.get('category_slug')}', price_avail={ai_catalog.get('price_available')}, price_range={ai_catalog.get('suggested_min_price')}-{ai_catalog.get('suggested_max_price')}, source='{ai_catalog.get('price_source')}'")
+    logger.info(f"[{req_id}] AI processing complete for {len(enhancement_results)} photo(s): product='{ai_catalog.get('name')}', cat='{ai_catalog.get('category_slug')}', price_avail={ai_catalog.get('price_available')}")
 
     return {
         "success": True,
-        "image_enhancement": enhancement_result,
+        "image_enhancement": enhancement_results[0],
+        "image_enhancements": enhancement_results,
         "ai_catalog": ai_catalog
     }
 

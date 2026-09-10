@@ -3,6 +3,9 @@
 function renderSellerAddProduct(container) {
   let currentStep = 1; // 1: Photo, 2: AI Enhance & Compare, 3: AI Details, 4: Pricing & Stock, 5: Success
   let selectedFile = null;
+  let selectedFiles = []; // 1 to 5 files
+  let stagedFiles = []; // 1 to 5 photos chosen in Step 1
+  let activePhotoIndex = 0; // index of active photo in Step 2 compare slider
   let enhancementData = null;
   let aiCatalogData = null;
   let finalPrice = null;
@@ -56,32 +59,108 @@ function renderSellerAddProduct(container) {
       return `
         <div class="space-y-4 animate-fade-in">
           <div class="text-center">
-            <h2 class="text-lg font-black text-stone-900">${t("step1Title")}</h2>
-            <p class="text-xs text-stone-500 mt-1 max-w-xs mx-auto">${t("step1Sub")}</p>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold mb-1 shadow-xs">
+              <i class="fa-solid fa-layer-group text-amber-700"></i> ${t("multiPhotoBadge", "Multiple Photo Upload (1–5 Photos)")}
+            </span>
+            <h2 class="text-lg font-black text-stone-900">${t("step1Title", "1. Upload Product Photos (1 to 5 Photos)")}</h2>
+            <p class="text-xs text-stone-500 mt-1 max-w-sm mx-auto">${t("step1Sub", "Upload 1 to 5 clear photos of your handmade craft (front, side, and detail angles).")}</p>
           </div>
 
           <!-- Big Camera & Upload Dropzone -->
-          <div class="bg-gradient-to-b from-amber-50 to-stone-50 border-2 border-dashed border-amber-300 rounded-3xl p-6 text-center shadow-xs">
+          <div class="bg-gradient-to-b from-amber-50 to-stone-50 border-2 border-dashed border-amber-300 rounded-3xl p-5 text-center shadow-xs">
             <input type="file" id="file-input-camera" accept="image/*" capture="environment" class="hidden">
-            <input type="file" id="file-input-gallery" accept="image/*" class="hidden">
+            <input type="file" id="file-input-gallery" accept="image/*" multiple class="hidden">
 
-            <div class="w-18 h-18 bg-amber-700 text-white rounded-3xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-md">
-              <i class="fa-solid fa-camera"></i>
+            <!-- 5 Visual Photo Slots (1 to 5 Photos) -->
+            <div class="bg-white/80 border border-amber-200/80 rounded-2xl p-3 mb-4 shadow-xs text-left">
+              <div class="flex items-center justify-between text-xs font-black text-stone-800 mb-2">
+                <span class="flex items-center gap-1.5">
+                  <i class="fa-solid fa-images text-amber-700"></i>
+                  <span>Product Photo Slots (1 to 5)</span>
+                </span>
+                <span class="text-[10px] text-amber-800 bg-amber-100 font-bold px-2 py-0.5 rounded-full">
+                  Min: 1 • Max: 5
+                </span>
+              </div>
+
+              <div class="grid grid-cols-5 gap-2">
+                ${[
+                  { label: "1. Cover", sub: "Front" },
+                  { label: "2. Side", sub: "Angle" },
+                  { label: "3. 3/4 View", sub: "Perspective" },
+                  { label: "4. Detail", sub: "Close-up" },
+                  { label: "5. Scale", sub: "Size" }
+                ].map((slot, idx) => {
+                  const file = stagedFiles[idx];
+                  if (file) {
+                    const previewUrl = URL.createObjectURL(file);
+                    return `
+                      <div class="relative aspect-square rounded-xl overflow-hidden border-2 border-amber-600 shadow-xs group bg-stone-100">
+                        <img src="${previewUrl}" class="w-full h-full object-cover">
+                        <span class="absolute bottom-0.5 left-0.5 bg-black/75 text-white text-[8px] font-bold px-1 rounded-xs">#${idx + 1}</span>
+                        <button type="button" class="btn-remove-photo absolute top-0.5 right-0.5 w-4 h-4 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center text-[9px] shadow cursor-pointer" data-remove-index="${idx}" title="Remove photo">✕</button>
+                      </div>
+                    `;
+                  } else {
+                    return `
+                      <button type="button" class="btn-slot-trigger aspect-square rounded-xl border-2 border-dashed border-amber-200 hover:border-amber-600 hover:bg-amber-50/60 transition flex flex-col items-center justify-center p-1 text-stone-400 hover:text-amber-800 cursor-pointer" data-slot-index="${idx}">
+                        <i class="fa-solid fa-plus text-xs text-amber-600 mb-0.5"></i>
+                        <span class="text-[9px] font-bold text-stone-700 leading-none">${slot.label}</span>
+                        <span class="text-[8px] text-stone-400 leading-none mt-0.5">${slot.sub}</span>
+                      </button>
+                    `;
+                  }
+                }).join('')}
+              </div>
+
+              ${stagedFiles.length > 0 ? `
+              <div class="mt-2.5 pt-2 border-t border-amber-100 flex items-center justify-between text-[11px]">
+                <span class="font-bold text-amber-900">
+                  <i class="fa-solid fa-circle-check text-emerald-600"></i> ${stagedFiles.length} of 5 photos chosen
+                </span>
+                <button type="button" id="btn-clear-photos" class="text-rose-600 hover:text-rose-800 font-semibold hover:underline cursor-pointer">
+                  Clear all
+                </button>
+              </div>
+              ` : ''}
             </div>
 
+            ${stagedFiles.length > 0 ? `
+            <!-- Primary Action: Enhance Staged Photos -->
+            <button id="btn-enhance-staged" class="w-full mb-3 bg-gradient-to-r from-amber-700 to-orange-600 hover:from-amber-800 hover:to-orange-700 text-white font-black py-3.5 px-4 rounded-2xl text-xs shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Enhance ${stagedFiles.length} Photo${stagedFiles.length > 1 ? 's' : ''} with AI Studio Lighting →</span>
+            </button>
+
+            ${stagedFiles.length < 5 ? `
+            <div class="grid grid-cols-2 gap-2 max-w-xs mx-auto">
+              <button id="btn-open-gallery" class="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-plus text-xs text-amber-700"></i>
+                <span>Add More Photos</span>
+              </button>
+
+              <button id="btn-open-camera" class="bg-white hover:bg-stone-100 text-stone-800 border border-stone-300 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-camera text-xs text-amber-700"></i>
+                <span>Take Photo</span>
+              </button>
+            </div>
+            ` : ''}
+            ` : `
+            <!-- 0 Photos Chosen Yet: Show Primary Upload Buttons -->
             <div class="grid grid-cols-2 gap-3 max-w-xs mx-auto">
-              <button id="btn-open-camera" class="bg-amber-700 hover:bg-amber-800 text-white font-bold py-3 px-3 rounded-2xl text-xs shadow flex items-center justify-center gap-2">
-                <i class="fa-solid fa-camera-retro"></i>
-                <span>${t("btnCapturePhoto")}</span>
+              <button id="btn-open-gallery" class="bg-amber-700 hover:bg-amber-800 text-white font-bold py-3.5 px-3 rounded-2xl text-xs shadow flex items-center justify-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-images text-sm"></i>
+                <span>${t("btnUploadPhoto", "Upload Photos (1–5)")}</span>
               </button>
 
-              <button id="btn-open-gallery" class="bg-white hover:bg-stone-100 text-stone-800 border border-stone-300 font-bold py-3 px-3 rounded-2xl text-xs shadow-xs flex items-center justify-center gap-2">
-                <i class="fa-solid fa-image text-amber-700"></i>
-                <span>${t("btnUploadPhoto")}</span>
+              <button id="btn-open-camera" class="bg-white hover:bg-stone-100 text-stone-800 border border-stone-300 font-bold py-3.5 px-3 rounded-2xl text-xs shadow-xs flex items-center justify-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-camera-retro text-amber-700 text-sm"></i>
+                <span>${t("btnCapturePhoto", "Take Photo")}</span>
               </button>
             </div>
+            `}
 
-            <p class="text-[11px] text-stone-400 mt-4">JPG, PNG, WebP up to 20MB</p>
+            <p class="text-[11px] text-stone-500 font-medium mt-3">Select 1 to 5 photos at once or tap slots to add multiple craft angles</p>
           </div>
 
           <!-- Quick Test Samples for Instant Demo -->
@@ -127,6 +206,19 @@ function renderSellerAddProduct(container) {
                   <div class="text-[10px] text-stone-500">Lost-Wax Metal</div>
                 </div>
               </button>
+
+              <button class="sample-craft-btn col-span-2 text-left p-2.5 rounded-xl border border-amber-300 bg-amber-50/70 hover:border-amber-600 hover:bg-amber-100/60 transition flex items-center gap-3"
+                      data-sample-multi="true" data-sample-urls="/static/images/products/terracotta_vase.jpg,/static/images/products/bankura_horse.jpg,/static/images/products/dhokra_musician.jpg" data-sample-name="multi_angle_craft" id="btn-sample-multi-photo">
+                <div class="flex -space-x-2 overflow-hidden shrink-0">
+                  <img src="/static/images/products/terracotta_vase.jpg" class="inline-block w-8 h-8 rounded-lg object-cover ring-2 ring-white">
+                  <img src="/static/images/products/bankura_horse.jpg" class="inline-block w-8 h-8 rounded-lg object-cover ring-2 ring-white">
+                  <img src="/static/images/products/dhokra_musician.jpg" class="inline-block w-8 h-8 rounded-lg object-cover ring-2 ring-white">
+                </div>
+                <div class="truncate">
+                  <div class="text-xs font-bold text-stone-900">Try Multi-Photo Demo (3 Craft Photos)</div>
+                  <div class="text-[10px] text-amber-800">Front, Side, & Angled Craft Views</div>
+                </div>
+              </button>
             </div>
           </div>
         </div>
@@ -134,10 +226,12 @@ function renderSellerAddProduct(container) {
     }
 
     if (currentStep === 2) {
-      const orig = enhancementData?.image_enhancement?.original_url;
-      const enh = enhancementData?.image_enhancement?.enhanced_url;
-      const metrics = enhancementData?.image_enhancement?.metrics || {};
-      const status = enhancementData?.image_enhancement?.status || 'enhanced';
+      const enhancements = enhancementData?.image_enhancements || (enhancementData?.image_enhancement ? [enhancementData.image_enhancement] : []);
+      const safeIndex = Math.min(Math.max(0, activePhotoIndex), Math.max(0, enhancements.length - 1));
+      const currentPhoto = enhancements[safeIndex] || enhancements[0] || {};
+      const orig = currentPhoto.original_url;
+      const enh = currentPhoto.enhanced_url;
+      const status = currentPhoto.status || 'enhanced';
 
       const isOriginalPreserved = status === 'original_preserved';
       const badgeText = isOriginalPreserved ? 'Photo Quality Verified (Authentic)' : 'Studio Isolation & Enhancement';
@@ -157,6 +251,19 @@ function renderSellerAddProduct(container) {
             <h2 class="text-lg font-black text-stone-900">Compare Studio Quality (Slide to View)</h2>
             <p class="text-xs text-stone-500">${subText}</p>
           </div>
+
+          ${enhancements.length > 1 ? `
+          <!-- Multi-photo selector tabs -->
+          <div class="flex items-center justify-center gap-2 py-1">
+            ${enhancements.map((p, idx) => `
+              <button type="button" class="photo-selector-tab relative rounded-2xl overflow-hidden border-2 transition-all p-0.5 ${idx === safeIndex ? 'border-amber-600 ring-2 ring-amber-300 scale-105 shadow-md' : 'border-stone-200 opacity-70 hover:opacity-100 hover:border-amber-300'}" data-photo-index="${idx}">
+                <img src="${p.enhanced_url || p.original_url}" class="w-12 h-12 object-cover rounded-xl" alt="Photo ${idx + 1}">
+                <span class="absolute bottom-1 right-1 bg-black/75 text-white text-[9px] font-bold px-1 rounded-sm">${idx + 1}</span>
+              </button>
+            `).join('')}
+          </div>
+          <p class="text-[11px] text-center text-stone-500 font-medium">Viewing Photo ${safeIndex + 1} of ${enhancements.length} • Tap thumbnails to compare each photo</p>
+          ` : ''}
 
           <!-- Interactive Before / After Image Slider -->
           <div class="relative w-full aspect-square max-w-sm mx-auto rounded-3xl overflow-hidden shadow-xl border-2 border-amber-200 select-none" id="slider-container">
@@ -181,22 +288,6 @@ function renderSellerAddProduct(container) {
               <div class="w-8 h-8 rounded-full bg-white text-stone-800 shadow-xl border-2 border-amber-700 flex items-center justify-center text-xs">
                 <i class="fa-solid fa-arrows-left-right text-[10px]"></i>
               </div>
-            </div>
-          </div>
-
-          <!-- Enhancement Metrics Badges -->
-          <div class="grid grid-cols-3 gap-2 text-center">
-            <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-2.5">
-              <div class="text-xs font-black text-amber-900">${metrics.lighting_improvement || 'Optimal (Balanced)'}</div>
-              <div class="text-[9px] text-amber-700 font-bold uppercase">${t("metricsLighting")}</div>
-            </div>
-            <div class="bg-emerald-50/80 border border-emerald-200 rounded-xl p-2.5">
-              <div class="text-xs font-black text-emerald-900">${metrics.sharpness_gain || 'Preserved'}</div>
-              <div class="text-[9px] text-emerald-700 font-bold uppercase">${t("metricsSharpness")}</div>
-            </div>
-            <div class="bg-purple-50/80 border border-purple-200 rounded-xl p-2.5">
-              <div class="text-xs font-black text-purple-900">${metrics.studio_grade || 'Marketplace Ready'}</div>
-              <div class="text-[9px] text-purple-700 font-bold uppercase">${t("metricsStudio")}</div>
             </div>
           </div>
 
@@ -612,22 +703,101 @@ function renderSellerAddProduct(container) {
     const galInput = document.getElementById("file-input-gallery");
     const btnCam = document.getElementById("btn-open-camera");
     const btnGal = document.getElementById("btn-open-gallery");
+    const btnEnhanceStaged = document.getElementById("btn-enhance-staged");
+    const btnClearPhotos = document.getElementById("btn-clear-photos");
 
     if (btnCam && camInput) btnCam.onclick = () => camInput.click();
     if (btnGal && galInput) btnGal.onclick = () => galInput.click();
 
-    const handleFile = async (file) => {
-      if (!file) return;
-      selectedFile = file;
-      await processUploadedImage(file);
-    };
+    if (btnEnhanceStaged) {
+      btnEnhanceStaged.onclick = async () => {
+        if (stagedFiles.length === 0) {
+          showToast("Please select at least 1 photo.", "warning");
+          return;
+        }
+        await processUploadedImages(stagedFiles);
+      };
+    }
 
-    if (camInput) camInput.onchange = (e) => handleFile(e.target.files[0]);
-    if (galInput) galInput.onchange = (e) => handleFile(e.target.files[0]);
+    if (btnClearPhotos) {
+      btnClearPhotos.onclick = () => {
+        stagedFiles = [];
+        render();
+      };
+    }
+
+    container.querySelectorAll(".btn-remove-photo").forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const removeIdx = parseInt(btn.getAttribute("data-remove-index"), 10);
+        if (!isNaN(removeIdx) && removeIdx >= 0 && removeIdx < stagedFiles.length) {
+          stagedFiles.splice(removeIdx, 1);
+          render();
+        }
+      };
+    });
+
+    container.querySelectorAll(".btn-slot-trigger").forEach(slot => {
+      slot.onclick = () => {
+        if (galInput) galInput.click();
+      };
+    });
+
+    if (camInput) {
+      camInput.onchange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+          if (stagedFiles.length >= 5) {
+            showToast("Maximum 5 photos allowed.", "warning");
+          } else {
+            stagedFiles.push(file);
+            render();
+          }
+        }
+        e.target.value = "";
+      };
+    }
+
+    if (galInput) {
+      galInput.onchange = (e) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+        const remainingSlots = Math.max(0, 5 - stagedFiles.length);
+        if (remainingSlots <= 0) {
+          showToast("Maximum 5 photos already selected.", "warning");
+          e.target.value = "";
+          return;
+        }
+        if (files.length > remainingSlots) {
+          showToast(`Maximum 5 photos allowed. Added first ${remainingSlots} photo(s).`, "warning");
+        }
+        const toAdd = files.slice(0, remainingSlots);
+        stagedFiles = [...stagedFiles, ...toAdd];
+        e.target.value = "";
+        render();
+      };
+    }
 
     // Sample buttons
     container.querySelectorAll(".sample-craft-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
+        const isMulti = btn.getAttribute("data-sample-multi") === "true";
+        if (isMulti) {
+          const urls = (btn.getAttribute("data-sample-urls") || "").split(",").filter(Boolean);
+          try {
+            showToast(`Loading ${urls.length} sample craft photos...`, "info");
+            const files = await Promise.all(urls.map(async (url, idx) => {
+              const res = await fetch(url);
+              const blob = await res.blob();
+              return new File([blob], `sample_photo_${idx + 1}.jpg`, { type: "image/jpeg" });
+            }));
+            await processUploadedImages(files);
+          } catch (err) {
+            showToast(err.message, "error");
+          }
+          return;
+        }
+
         const sampleUrl = btn.getAttribute("data-sample-url");
         const sampleName = btn.getAttribute("data-sample-name");
         try {
@@ -636,16 +806,26 @@ function renderSellerAddProduct(container) {
           const res = await fetch(sampleUrl);
           const blob = await res.blob();
           const file = new File([blob], sampleName, { type: "image/jpeg" });
-          await processUploadedImage(file);
+          await processUploadedImages([file]);
         } catch (err) {
           showToast(err.message, "error");
         }
       });
     });
 
-    // Step 2: Slider logic
+    // Step 2: Slider & Multi-Photo switching logic
     if (currentStep === 2) {
       setupComparisonSlider();
+
+      container.querySelectorAll(".photo-selector-tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          const idx = parseInt(tab.getAttribute("data-photo-index"), 10);
+          if (!isNaN(idx) && idx !== activePhotoIndex) {
+            activePhotoIndex = idx;
+            render();
+          }
+        });
+      });
 
       const btnConfirmEnhancement = document.getElementById("btn-confirm-enhancement");
       if (btnConfirmEnhancement) {
@@ -918,6 +1098,11 @@ function renderSellerAddProduct(container) {
             enhanced_image_url: enhancementData.image_enhancement.enhanced_url,
             ai_generated_meta: {
               ...aiCatalogData,
+              all_images: (enhancementData.image_enhancements || [enhancementData.image_enhancement]).map(e => ({
+                original_url: e.original_url,
+                enhanced_url: e.enhanced_url,
+                background_color: e.solid_background_color
+              })),
               enhancement_metrics: enhancementData.image_enhancement.metrics
             }
           };
@@ -951,15 +1136,28 @@ function renderSellerAddProduct(container) {
     }
   }
 
-  async function processUploadedImage(file) {
+  async function processUploadedImages(files) {
     if (!api.token) {
       showToast(t("loginRequiredArtisan"), "info");
       window.app.navigate("auth", { mode: "login" });
       return;
     }
 
+    if (!files || files.length === 0) {
+      showToast("Please select at least 1 photo.", "warning");
+      return;
+    }
+
+    // Limit strictly to 1 to 5 photos
+    if (files.length > 5) {
+      showToast("Maximum 5 photos allowed. First 5 photos selected.", "warning");
+      files = files.slice(0, 5);
+    }
+
     // Reset previous AI state to guarantee clean request isolation
-    selectedFile = file;
+    selectedFiles = files;
+    selectedFile = files[0];
+    activePhotoIndex = 0;
     enhancementData = null;
     aiCatalogData = null;
     finalPrice = null;
@@ -972,9 +1170,13 @@ function renderSellerAddProduct(container) {
     isCostCalculatorOpen = false;
 
     try {
-      showLoadingModal("AI Enhancing Your Photo...", "Balancing lighting, sharpening textures, and generating marketplace details...");
+      const countLabel = files.length > 1 ? `${files.length} Photos` : "Your Photo";
+      showLoadingModal(`AI Enhancing ${countLabel}...`, "Isolating product subjects, enhancing studio lighting, and preparing clean solid backgrounds...");
       const formData = new FormData();
-      formData.append("file", file);
+      files.forEach(f => {
+        formData.append("files", f);
+      });
+      formData.append("file", files[0]);
       formData.append("language", currentLanguage);
 
       const res = await api.uploadAndEnhance(formData);
@@ -995,6 +1197,10 @@ function renderSellerAddProduct(container) {
       hideLoadingModal();
       showToast(err.message, "error");
     }
+  }
+
+  async function processUploadedImage(file) {
+    return await processUploadedImages([file]);
   }
 
   function setupComparisonSlider() {

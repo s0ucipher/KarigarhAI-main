@@ -68,10 +68,11 @@ const translations = {
 
     // AI Listing Wizard
     wizardTitle: "List a Craft with AI",
-    step1Title: "1. Take or Upload Photo",
-    step1Sub: "Take a clear photo of your handmade item using your camera or upload one.",
+    step1Title: "1. Upload Product Photos (1 to 5 Photos)",
+    step1Sub: "Upload 1 to 5 clear photos of your handmade craft (front, side, and detail angles).",
     btnCapturePhoto: "Take Photo",
-    btnUploadPhoto: "Choose Photo",
+    btnUploadPhoto: "Upload Photos (1–5)",
+    multiPhotoBadge: "Multiple Photo Upload (1–5 Photos)",
     orPickSample: "Or select a sample craft to test:",
     sampleVase: "Terracotta Vase",
     sampleHorse: "Bankura Horse",
@@ -243,10 +244,11 @@ const translations = {
 
     // AI Listing Wizard
     wizardTitle: "AI से उत्पाद सूचीबद्ध करें",
-    step1Title: "1. फोटो खींचें या अपलोड करें",
-    step1Sub: "अपने हस्तनिर्मित उत्पाद की साफ़ तस्वीर कैमरे से लें या गैलरी से चुनें।",
+    step1Title: "1. उत्पाद फ़ोटो अपलोड करें (1 से 5 फ़ोटो)",
+    step1Sub: "अपने हस्तशिल्प की 1 से 5 साफ़ तस्वीरें अपलोड करें (सामने, बाजू और विवरण कोण)।",
     btnCapturePhoto: "कैमरा खोलें",
-    btnUploadPhoto: "फोटो चुनें",
+    btnUploadPhoto: "फ़ोटो अपलोड करें (1-5)",
+    multiPhotoBadge: "मल्टीपल फ़ोटो अपलोड (1 से 5 फ़ोटो)",
     orPickSample: "या परीक्षण के लिए नमूना शिल्प चुनें:",
     sampleVase: "मिट्टी का फूलदान",
     sampleHorse: "बांकुरा घोड़ा",
@@ -417,10 +419,11 @@ const translations = {
 
     // AI Listing Wizard
     wizardTitle: "AI সাহায্যে পণ্য তালিকাভুক্ত করুন",
-    step1Title: "১. ছবি তুলুন বা আপলোড করুন",
-    step1Sub: "আপনার তৈরি পণ্যের একটি পরিষ্কার ছবি ক্যামেরা দিয়ে তুলুন বা গ্যালারি থেকে বাছুন।",
+    step1Title: "১. পণ্যের ছবি আপলোড করুন (১ থেকে ৫টি ছবি)",
+    step1Sub: "আপনার হস্তশিল্পের ১ থেকে ৫টি স্পষ্ট ছবি আপলোড করুন (সামনে, পাশ এবং বিস্তারিত কোণ)।",
     btnCapturePhoto: "ক্যামেরা খুলুন",
-    btnUploadPhoto: "ছবি বাছুন",
+    btnUploadPhoto: "ছবি আপলোড করুন (১-৫)",
+    multiPhotoBadge: "একাধিক ছবি আপলোড (১ থেকে ৫টি ছবি)",
     orPickSample: "অথবা পরীক্ষার জন্য নমুনা শিল্প বাছুন:",
     sampleVase: "পোড়ামাটির ফুলদানি",
     sampleHorse: "বাঁকুড়ার ঘোড়া",

@@ -10,18 +10,63 @@ class App {
     this.init();
   }
 
+  getScreenFromHash() {
+    const raw = (window.location.hash || "").replace(/^#\/?/, '').trim();
+    if (!raw) return null;
+    const clean = raw.toLowerCase().replace(/[\/-]/g, '_');
+    if (clean === "seller_add_product" || clean === "add_product" || clean === "add_craft") {
+      return "seller_add_product";
+    }
+    if (clean === "seller_dashboard" || clean === "dashboard") {
+      return "seller_dashboard";
+    }
+    if (clean === "seller_orders") {
+      return "seller_orders";
+    }
+    if (clean === "seller_profile") {
+      return "seller_profile";
+    }
+    if (clean === "buyer_marketplace" || clean === "marketplace") {
+      return "buyer_marketplace";
+    }
+    if (clean === "buyer_orders") {
+      return "buyer_orders";
+    }
+    if (clean === "buyer_cart_checkout" || clean === "cart" || clean === "buyer_cart") {
+      return "buyer_cart_checkout";
+    }
+    if (clean === "buyer_profile") {
+      return "buyer_profile";
+    }
+    if (clean === "auth" || clean === "login") {
+      return "auth";
+    }
+    return null;
+  }
+
   async init() {
-    // Determine initial screen based on login state
+    const hashScreen = this.getScreenFromHash();
+
+    // Determine initial screen based on login state and URL hash
     if (!api.token || !api.user) {
-      // Default to guest marketplace
-      this.currentScreen = "buyer_marketplace";
+      this.currentScreen = (hashScreen === "auth" || hashScreen === "buyer_marketplace") ? hashScreen : "buyer_marketplace";
     } else {
-      if (api.user.role === "seller") {
+      if (hashScreen) {
+        this.currentScreen = hashScreen;
+      } else if (api.user.role === "seller") {
         this.currentScreen = "seller_dashboard";
       } else {
         this.currentScreen = "buyer_marketplace";
       }
     }
+
+    // Listen to URL hash changes for deep linking
+    window.addEventListener("hashchange", () => {
+      const nextScreen = this.getScreenFromHash();
+      if (nextScreen && nextScreen !== this.currentScreen) {
+        this.navigate(nextScreen, {}, false);
+      }
+    });
 
     // Listen to language changes
     window.addEventListener("languageChanged", () => {
@@ -92,13 +137,22 @@ class App {
     });
   }
 
-  navigate(screenName, params = {}) {
+  navigate(screenName, params = {}, syncHash = true) {
     if (this.currentScreen !== screenName && this.currentScreen !== "auth") {
       this.previousScreen = this.currentScreen;
       this.previousParams = this.screenParams;
     }
     this.currentScreen = screenName;
     this.screenParams = params;
+
+    if (syncHash && window.history && window.history.replaceState) {
+      const hashFormat = screenName.replace(/_/g, '/');
+      const targetHash = `#${hashFormat}`;
+      if (window.location.hash !== targetHash) {
+        window.history.replaceState(null, '', targetHash);
+      }
+    }
+
     window.scrollTo({ top: 0, behavior: "smooth" });
     this.renderTopBar();
     this.renderNav();
