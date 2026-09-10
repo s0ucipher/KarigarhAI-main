@@ -140,13 +140,13 @@ function renderSellerAddProduct(container) {
       const status = enhancementData?.image_enhancement?.status || 'enhanced';
 
       const isOriginalPreserved = status === 'original_preserved';
-      const badgeText = isOriginalPreserved ? 'Photo Quality Verified (Authentic)' : 'Smart Enhancement Applied';
-      const badgeIcon = isOriginalPreserved ? 'fa-shield-halved text-amber-700' : 'fa-sparkles text-emerald-600';
+      const badgeText = isOriginalPreserved ? 'Photo Quality Verified (Authentic)' : 'Studio Isolation & Enhancement';
+      const badgeIcon = isOriginalPreserved ? 'fa-shield-halved text-amber-700' : 'fa-wand-magic-sparkles text-emerald-600';
       const badgeBg = isOriginalPreserved ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-emerald-800';
       const subText = isOriginalPreserved
         ? 'Your photograph has balanced natural lighting and sharpness. Original craftsmanship was preserved.'
-        : 'Drag the slider horizontally to compare your raw photo with studio lighting & clarity.';
-      const afterLabel = isOriginalPreserved ? 'Verified Authentic ✨' : `${t("sliderAfter")} ✨`;
+        : 'The product was isolated onto a clean solid studio background with refined lighting & clarity.';
+      const afterLabel = isOriginalPreserved ? 'Verified Authentic ✨' : 'Studio Photo ✨';
 
       return `
         <div class="space-y-4 animate-fade-in">
@@ -154,7 +154,7 @@ function renderSellerAddProduct(container) {
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${badgeBg} text-[11px] font-bold mb-1">
               <i class="fa-solid ${badgeIcon}"></i> ${badgeText}
             </span>
-            <h2 class="text-lg font-black text-stone-900">Compare Quality (Slide to View)</h2>
+            <h2 class="text-lg font-black text-stone-900">Compare Studio Quality (Slide to View)</h2>
             <p class="text-xs text-stone-500">${subText}</p>
           </div>
 
