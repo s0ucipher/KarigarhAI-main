@@ -102,25 +102,12 @@ async def upload_and_enhance(
 
         logger.info(f"[{req_id}] Processing photo {idx+1}/{len(uploaded_files)}: client_file='{f.filename}', size_hint='{f.size if hasattr(f, 'size') else 'unknown'}'")
 
-        CHUNK_SIZE = 1024 * 1024  # 1MB chunk streaming
-        MAX_FILE_SIZE = 20 * 1024 * 1024  # 20MB limit
-        total_size = 0
+        contents = await f.read()
+        if len(contents) > 20 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail=f"Image file '{f.filename}' exceeds 20MB limit")
 
         with open(saved_path, "wb") as out_f:
-            while True:
-                chunk = await f.read(CHUNK_SIZE)
-                if not chunk:
-                    break
-                total_size += len(chunk)
-                if total_size > MAX_FILE_SIZE:
-                    out_f.close()
-                    if saved_path.exists():
-                        saved_path.unlink()
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Image file '{f.filename}' exceeds 20MB limit"
-                    )
-                out_f.write(chunk)
+            out_f.write(contents)
 
         if idx == 0:
             primary_saved_path = saved_path
