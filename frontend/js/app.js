@@ -191,16 +191,23 @@ class App {
     topBar.innerHTML = `
       <div class="bg-white/90 backdrop-blur-md border-b border-stone-200">
         <div class="max-w-7xl mx-auto flex items-center justify-between px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3">
-          <!-- Logo & Title -->
-          <div class="flex items-center gap-2 cursor-pointer shrink-0" id="brand-logo-click">
-            <div class="w-8 h-8 rounded-xl bg-amber-700 text-white flex items-center justify-center text-base shadow-sm">
-              <i class="fa-solid fa-hands-holding-circle"></i>
-            </div>
-            <div>
-              <span class="text-sm font-black text-stone-900 tracking-tight">${t("appName")}</span>
-              <span class="text-[9px] font-bold block -mt-1 text-amber-800">
-                ${isSeller ? 'Artisan Studio' : 'Craft Marketplace'}
-              </span>
+          <!-- Logo & Title with Back button if on subpages like buyer_product_details -->
+          <div class="flex items-center gap-1.5 shrink-0">
+            ${this.currentScreen === 'buyer_product_details' ? `
+              <button id="btn-topbar-back" class="w-8 h-8 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/80 flex items-center justify-center transition shadow-2xs cursor-pointer mr-0.5" title="Back to Marketplace">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+              </button>
+            ` : ''}
+            <div class="flex items-center gap-2 cursor-pointer shrink-0" id="brand-logo-click">
+              <div class="w-8 h-8 rounded-xl bg-amber-700 text-white flex items-center justify-center text-base shadow-sm">
+                <i class="fa-solid fa-hands-holding-circle"></i>
+              </div>
+              <div>
+                <span class="text-sm font-black text-stone-900 tracking-tight">${t("appName")}</span>
+                <span class="text-[9px] font-bold block -mt-1 text-amber-800">
+                  ${isSeller ? 'Artisan Studio' : 'Craft Marketplace'}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -296,6 +303,11 @@ class App {
         const dest = item.getAttribute("data-nav");
         if (dest) this.navigate(dest);
       });
+    });
+
+    // Topbar back button
+    document.getElementById("btn-topbar-back")?.addEventListener("click", () => {
+      this.goBack();
     });
 
     // Brand click

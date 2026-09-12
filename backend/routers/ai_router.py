@@ -78,14 +78,14 @@ async def upload_and_enhance(
         if not any(f.filename == file.filename for f in uploaded_files):
             uploaded_files.append(file)
 
-    # Validate upload limits (1 to 5 photos)
+    # Validate upload limits (1 to 3 photos)
     if not uploaded_files:
         raise HTTPException(status_code=400, detail="Please upload at least 1 product photo.")
 
-    # Enforce maximum 5 photos limit; prevent additional photos beyond 5
-    if len(uploaded_files) > 5:
-        logger.info(f"[{req_id}] User provided {len(uploaded_files)} photos; preventing additional photos beyond 5.")
-        uploaded_files = uploaded_files[:5]
+    # Enforce maximum 3 photos limit; prevent additional photos beyond 3
+    if len(uploaded_files) > 3:
+        logger.info(f"[{req_id}] User provided {len(uploaded_files)} photos; preventing additional photos beyond 3.")
+        uploaded_files = uploaded_files[:3]
 
     allowed_extensions = {".jpg", ".jpeg", ".png", ".webp"}
     enhancement_results = []

@@ -68,11 +68,11 @@ const translations = {
 
     // AI Listing Wizard
     wizardTitle: "List a Craft with AI",
-    step1Title: "1. Upload Product Photos (1 to 5 Photos)",
-    step1Sub: "Upload 1 to 5 clear photos of your handmade craft (front, side, and detail angles).",
+    step1Title: "1. Upload Product Photos (1 to 3 Photos)",
+    step1Sub: "Upload 1 to 3 clear photos of your handmade craft (front, angle, and detail).",
     btnCapturePhoto: "Take Photo",
-    btnUploadPhoto: "Upload Photos (1–5)",
-    multiPhotoBadge: "Multiple Photo Upload (1–5 Photos)",
+    btnUploadPhoto: "Upload Photos (1–3)",
+    multiPhotoBadge: "Multiple Photo Upload (1–3 Photos)",
     orPickSample: "Or select a sample craft to test:",
     sampleVase: "Terracotta Vase",
     sampleHorse: "Bankura Horse",
@@ -244,11 +244,11 @@ const translations = {
 
     // AI Listing Wizard
     wizardTitle: "AI से उत्पाद सूचीबद्ध करें",
-    step1Title: "1. उत्पाद फ़ोटो अपलोड करें (1 से 5 फ़ोटो)",
-    step1Sub: "अपने हस्तशिल्प की 1 से 5 साफ़ तस्वीरें अपलोड करें (सामने, बाजू और विवरण कोण)।",
+    step1Title: "1. उत्पाद फ़ोटो अपलोड करें (1 से 3 फ़ोटो)",
+    step1Sub: "अपने हस्तशिल्प की 1 से 3 साफ़ तस्वीरें अपलोड करें (सामने, बाजू और विवरण कोण)।",
     btnCapturePhoto: "कैमरा खोलें",
-    btnUploadPhoto: "फ़ोटो अपलोड करें (1-5)",
-    multiPhotoBadge: "मल्टीपल फ़ोटो अपलोड (1 से 5 फ़ोटो)",
+    btnUploadPhoto: "फ़ोटो अपलोड करें (1-3)",
+    multiPhotoBadge: "मल्टीपल फ़ोटो अपलोड (1 से 3 फ़ोटो)",
     orPickSample: "या परीक्षण के लिए नमूना शिल्प चुनें:",
     sampleVase: "मिट्टी का फूलदान",
     sampleHorse: "बांकुरा घोड़ा",
@@ -419,11 +419,11 @@ const translations = {
 
     // AI Listing Wizard
     wizardTitle: "AI সাহায্যে পণ্য তালিকাভুক্ত করুন",
-    step1Title: "১. পণ্যের ছবি আপলোড করুন (১ থেকে ৫টি ছবি)",
-    step1Sub: "আপনার হস্তশিল্পের ১ থেকে ৫টি স্পষ্ট ছবি আপলোড করুন (সামনে, পাশ এবং বিস্তারিত কোণ)।",
+    step1Title: "১. পণ্যের ছবি আপলোড করুন (১ থেকে ৩টি ছবি)",
+    step1Sub: "আপনার হস্তশিল্পের ১ থেকে ৩টি স্পষ্ট ছবি আপলোড করুন (সামনে, পাশ এবং বিস্তারিত কোণ)।",
     btnCapturePhoto: "ক্যামেরা খুলুন",
-    btnUploadPhoto: "ছবি আপলোড করুন (১-৫)",
-    multiPhotoBadge: "একাধিক ছবি আপলোড (১ থেকে ৫টি ছবি)",
+    btnUploadPhoto: "ছবি আপলোড করুন (১-৩)",
+    multiPhotoBadge: "একাধিক ছবি আপলোড (১ থেকে ৩টি ছবি)",
     orPickSample: "অথবা পরীক্ষার জন্য নমুনা শিল্প বাছুন:",
     sampleVase: "পোড়ামাটির ফুলদানি",
     sampleHorse: "বাঁকুড়ার ঘোড়া",

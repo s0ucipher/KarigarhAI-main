@@ -3,8 +3,8 @@
 function renderSellerAddProduct(container) {
   let currentStep = 1; // 1: Photo, 2: AI Enhance & Compare, 3: AI Details, 4: Pricing & Stock, 5: Success
   let selectedFile = null;
-  let selectedFiles = []; // 1 to 5 files
-  let stagedFiles = []; // 1 to 5 photos chosen in Step 1
+  let selectedFiles = []; // 1 to 3 files
+  let stagedFiles = []; // 1 to 3 photos chosen in Step 1
   let activePhotoIndex = 0; // index of active photo in Step 2 compare slider
   let enhancementData = null;
   let aiCatalogData = null;
@@ -60,10 +60,10 @@ function renderSellerAddProduct(container) {
         <div class="space-y-4 animate-fade-in">
           <div class="text-center">
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold mb-1 shadow-xs">
-              <i class="fa-solid fa-layer-group text-amber-700"></i> ${t("multiPhotoBadge", "Multiple Photo Upload (1–5 Photos)")}
+              <i class="fa-solid fa-layer-group text-amber-700"></i> ${t("multiPhotoBadge", "Multiple Photo Upload (1–3 Photos)")}
             </span>
-            <h2 class="text-lg font-black text-stone-900">${t("step1Title", "1. Upload Product Photos (1 to 5 Photos)")}</h2>
-            <p class="text-xs text-stone-500 mt-1 max-w-sm mx-auto">${t("step1Sub", "Upload 1 to 5 clear photos of your handmade craft (front, side, and detail angles).")}</p>
+            <h2 class="text-lg font-black text-stone-900">${t("step1Title", "1. Upload Product Photos (1 to 3 Photos)")}</h2>
+            <p class="text-xs text-stone-500 mt-1 max-w-sm mx-auto">${t("step1Sub", "Upload 1 to 3 clear photos of your handmade craft (front, angle, and detail).")}</p>
           </div>
 
           <!-- Big Camera & Upload Dropzone -->
@@ -71,25 +71,23 @@ function renderSellerAddProduct(container) {
             <input type="file" id="file-input-camera" accept="image/*" capture="environment" class="hidden">
             <input type="file" id="file-input-gallery" accept="image/*" multiple class="hidden">
 
-            <!-- 5 Visual Photo Slots (1 to 5 Photos) -->
+            <!-- 3 Visual Photo Slots (1 to 3 Photos) -->
             <div class="bg-white/80 border border-amber-200/80 rounded-2xl p-3 mb-4 shadow-xs text-left">
               <div class="flex items-center justify-between text-xs font-black text-stone-800 mb-2">
                 <span class="flex items-center gap-1.5">
                   <i class="fa-solid fa-images text-amber-700"></i>
-                  <span>Product Photo Slots (1 to 5)</span>
+                  <span>Product Photo Slots (1 to 3)</span>
                 </span>
                 <span class="text-[10px] text-amber-800 bg-amber-100 font-bold px-2 py-0.5 rounded-full">
-                  Min: 1 • Max: 5
+                  Min: 1 • Max: 3
                 </span>
               </div>
 
-              <div class="grid grid-cols-5 gap-2">
+              <div class="grid grid-cols-3 gap-2.5">
                 ${[
-                  { label: "1. Cover", sub: "Front" },
-                  { label: "2. Side", sub: "Angle" },
-                  { label: "3. 3/4 View", sub: "Perspective" },
-                  { label: "4. Detail", sub: "Close-up" },
-                  { label: "5. Scale", sub: "Size" }
+                  { label: "1. Front", sub: "Main View" },
+                  { label: "2. Angle", sub: "Side View" },
+                  { label: "3. Detail", sub: "Close-up" }
                 ].map((slot, idx) => {
                   const file = stagedFiles[idx];
                   if (file) {
@@ -103,10 +101,10 @@ function renderSellerAddProduct(container) {
                     `;
                   } else {
                     return `
-                      <button type="button" class="btn-slot-trigger aspect-square rounded-xl border-2 border-dashed border-amber-200 hover:border-amber-600 hover:bg-amber-50/60 transition flex flex-col items-center justify-center p-1 text-stone-400 hover:text-amber-800 cursor-pointer" data-slot-index="${idx}">
-                        <i class="fa-solid fa-plus text-xs text-amber-600 mb-0.5"></i>
-                        <span class="text-[9px] font-bold text-stone-700 leading-none">${slot.label}</span>
-                        <span class="text-[8px] text-stone-400 leading-none mt-0.5">${slot.sub}</span>
+                      <button type="button" class="btn-slot-trigger aspect-square rounded-xl border-2 border-dashed border-amber-200 hover:border-amber-600 hover:bg-amber-50/60 transition flex flex-col items-center justify-center p-2 text-stone-400 hover:text-amber-800 cursor-pointer" data-slot-index="${idx}">
+                        <i class="fa-solid fa-plus text-sm text-amber-600 mb-0.5"></i>
+                        <span class="text-[10px] font-bold text-stone-700 leading-none">${slot.label}</span>
+                        <span class="text-[9px] text-stone-400 leading-none mt-0.5">${slot.sub}</span>
                       </button>
                     `;
                   }
@@ -116,7 +114,7 @@ function renderSellerAddProduct(container) {
               ${stagedFiles.length > 0 ? `
               <div class="mt-2.5 pt-2 border-t border-amber-100 flex items-center justify-between text-[11px]">
                 <span class="font-bold text-amber-900">
-                  <i class="fa-solid fa-circle-check text-emerald-600"></i> ${stagedFiles.length} of 5 photos chosen
+                  <i class="fa-solid fa-circle-check text-emerald-600"></i> ${stagedFiles.length} of 3 photos chosen
                 </span>
                 <button type="button" id="btn-clear-photos" class="text-rose-600 hover:text-rose-800 font-semibold hover:underline cursor-pointer">
                   Clear all
@@ -132,7 +130,7 @@ function renderSellerAddProduct(container) {
               <span>Enhance ${stagedFiles.length} Photo${stagedFiles.length > 1 ? 's' : ''} with AI Studio Lighting →</span>
             </button>
 
-            ${stagedFiles.length < 5 ? `
+            ${stagedFiles.length < 3 ? `
             <div class="grid grid-cols-2 gap-2 max-w-xs mx-auto">
               <button id="btn-open-gallery" class="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer">
                 <i class="fa-solid fa-plus text-xs text-amber-700"></i>
@@ -150,7 +148,7 @@ function renderSellerAddProduct(container) {
             <div class="grid grid-cols-2 gap-3 max-w-xs mx-auto">
               <button id="btn-open-gallery" class="bg-amber-700 hover:bg-amber-800 text-white font-bold py-3.5 px-3 rounded-2xl text-xs shadow flex items-center justify-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-images text-sm"></i>
-                <span>${t("btnUploadPhoto", "Upload Photos (1–5)")}</span>
+                <span>${t("btnUploadPhoto", "Upload Photos (1–3)")}</span>
               </button>
 
               <button id="btn-open-camera" class="bg-white hover:bg-stone-100 text-stone-800 border border-stone-300 font-bold py-3.5 px-3 rounded-2xl text-xs shadow-xs flex items-center justify-center gap-2 cursor-pointer">
@@ -160,7 +158,7 @@ function renderSellerAddProduct(container) {
             </div>
             `}
 
-            <p class="text-[11px] text-stone-500 font-medium mt-3">Select 1 to 5 photos at once or tap slots to add multiple craft angles</p>
+            <p class="text-[11px] text-stone-500 font-medium mt-3">Select 1 to 3 photos at once or tap slots to add multiple craft angles</p>
           </div>
 
           <!-- Quick Test Samples for Instant Demo -->
@@ -747,8 +745,8 @@ function renderSellerAddProduct(container) {
       camInput.onchange = (e) => {
         const file = e.target.files && e.target.files[0];
         if (file) {
-          if (stagedFiles.length >= 5) {
-            showToast("Maximum 5 photos allowed.", "warning");
+          if (stagedFiles.length >= 3) {
+            showToast("Maximum 3 photos allowed.", "warning");
           } else {
             stagedFiles.push(file);
             render();
@@ -762,14 +760,14 @@ function renderSellerAddProduct(container) {
       galInput.onchange = (e) => {
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
-        const remainingSlots = Math.max(0, 5 - stagedFiles.length);
+        const remainingSlots = Math.max(0, 3 - stagedFiles.length);
         if (remainingSlots <= 0) {
-          showToast("Maximum 5 photos already selected.", "warning");
+          showToast("Maximum 3 photos already selected.", "warning");
           e.target.value = "";
           return;
         }
         if (files.length > remainingSlots) {
-          showToast(`Maximum 5 photos allowed. Added first ${remainingSlots} photo(s).`, "warning");
+          showToast(`Maximum 3 photos allowed. Added first ${remainingSlots} photo(s).`, "warning");
         }
         const toAdd = files.slice(0, remainingSlots);
         stagedFiles = [...stagedFiles, ...toAdd];
@@ -1148,10 +1146,10 @@ function renderSellerAddProduct(container) {
       return;
     }
 
-    // Limit strictly to 1 to 5 photos
-    if (files.length > 5) {
-      showToast("Maximum 5 photos allowed. First 5 photos selected.", "warning");
-      files = files.slice(0, 5);
+    // Limit strictly to 1 to 3 photos
+    if (files.length > 3) {
+      showToast("Maximum 3 photos allowed. First 3 photos selected.", "warning");
+      files = files.slice(0, 3);
     }
 
     // Reset previous AI state to guarantee clean request isolation

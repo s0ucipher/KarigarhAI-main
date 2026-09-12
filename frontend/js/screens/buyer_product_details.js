@@ -23,13 +23,13 @@ async function renderBuyerProductDetails(container, params = {}) {
 
     container.innerHTML = `
       <div class="pb-28 max-w-4xl mx-auto md:pt-4">
-        <!-- Floating Back & Share Nav -->
-        <div class="fixed top-3 inset-x-0 max-w-md md:max-w-4xl mx-auto px-4 z-30 flex items-center justify-between pointer-events-none">
-          <button id="btn-back-marketplace" class="pointer-events-auto w-9 h-9 rounded-full bg-white/90 backdrop-blur-md shadow-md flex items-center justify-center text-stone-800 hover:bg-white text-xs transition">
+        <!-- Floating Back & Share Nav Bar (Inside Mobile Screen Container) -->
+        <div class="sticky top-2.5 z-30 px-3 -mb-10 flex items-center justify-between pointer-events-none">
+          <button id="btn-back-marketplace" class="pointer-events-auto w-9 h-9 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-stone-200/80 flex items-center justify-center text-stone-800 hover:bg-amber-50 hover:text-amber-900 text-xs transition cursor-pointer" title="Back to Marketplace">
             <i class="fa-solid fa-arrow-left"></i>
           </button>
           <div class="flex items-center gap-2">
-            <button id="btn-listen-story" class="pointer-events-auto bg-amber-700/90 hover:bg-amber-800 text-white text-[11px] font-bold py-1.5 px-3 rounded-full shadow-md backdrop-blur-md flex items-center gap-1.5 transition">
+            <button id="btn-listen-story" class="pointer-events-auto bg-amber-700/95 hover:bg-amber-800 text-white text-[11px] font-bold py-1.5 px-3 rounded-full shadow-md backdrop-blur-md flex items-center gap-1.5 transition cursor-pointer">
               <i class="fa-solid fa-volume-high"></i> Listen Story
             </button>
           </div>
@@ -165,7 +165,11 @@ async function renderBuyerProductDetails(container, params = {}) {
 
     // Events
     document.getElementById("btn-back-marketplace")?.addEventListener("click", () => {
-      window.app.navigate("buyer_marketplace");
+      if (window.app && typeof window.app.goBack === "function") {
+        window.app.goBack();
+      } else {
+        window.app.navigate("buyer_marketplace");
+      }
     });
 
     // Toggle images

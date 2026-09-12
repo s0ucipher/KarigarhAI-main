@@ -4,7 +4,7 @@ import math
 import uuid
 import logging
 from pathlib import Path
-from PIL import Image, ImageEnhance, ImageOps, ImageFilter, ImageStat
+from PIL import Image, ImageEnhance, ImageOps, ImageFilter, ImageStat, ImageDraw
 from backend.config import UPLOAD_DIR
 
 logger = logging.getLogger("kalasetu.image_enhancer")
@@ -20,18 +20,24 @@ _REMBG_SESSION = None
 
 
 def get_rembg_session():
-    """Lazily initializes and caches the lightweight rembg session."""
+    """Lazily initializes and caches the rembg session, preferring high-accuracy u2net."""
     global _REMBG_SESSION
     if _REMBG_SESSION is None:
         try:
             import rembg
-            # u2netp is the lightweight, fast mobile model (~4.5MB)
-            _REMBG_SESSION = rembg.new_session("u2netp")
-            logger.info("rembg session initialized successfully with u2netp model.")
+            # Prefer high-accuracy standard u2net model for precise craft edge silhouettes
+            try:
+                _REMBG_SESSION = rembg.new_session("u2net")
+                logger.info("rembg session initialized successfully with full-precision u2net model.")
+            except Exception as u2net_err:
+                logger.warning(f"u2net model unavailable ({u2net_err}), trying lightweight u2netp...")
+                _REMBG_SESSION = rembg.new_session("u2netp")
+                logger.info("rembg session initialized with u2netp fallback.")
         except Exception as e:
             logger.warning(f"Failed to initialize rembg session: {e}. Will use fallback segmentation.")
             _REMBG_SESSION = False
     return _REMBG_SESSION if _REMBG_SESSION is not False else None
+
 
 
 def _get_pixels(img: Image.Image) -> list:
@@ -410,18 +416,48 @@ def composite_studio_product(
     """
     Composites the isolated, enhanced product onto the complementary single solid background.
     - The background is 100% a single flat solid color.
-    - No gradients, no props, no scenery, no decorative elements.
+    - Adds a subtle, natural studio contact shadow beneath the craft base to anchor it realistically.
     """
+    if enhanced_rgba.mode != "RGBA":
+        enhanced_rgba = enhanced_rgba.convert("RGBA")
+
     width, height = enhanced_rgba.size
-    # Create single solid color canvas
-    solid_bg = Image.new("RGB", (width, height), bg_color)
+    solid_bg = Image.new("RGBA", (width, height), (*bg_color, 255))
     
-    # Extract alpha mask
     alpha = enhanced_rgba.split()[3]
-    
+    bbox = alpha.getbbox()
+    if bbox:
+        left, upper, right, lower = bbox
+        craft_w = right - left
+        craft_h = lower - upper
+        
+        # Subtle soft studio ground contact shadow to naturally anchor the product
+        shadow_w = int(craft_w * 0.72)
+        shadow_h = max(5, int(craft_h * 0.055))
+        shadow_x = left + (craft_w - shadow_w) // 2
+        shadow_y = min(height - shadow_h - 2, lower - max(2, shadow_h // 3))
+        
+        if shadow_w > 8 and shadow_h > 2 and shadow_y < height:
+            shadow_layer = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(shadow_layer)
+            shadow_tint = (
+                max(0, bg_color[0] - 75),
+                max(0, bg_color[1] - 75),
+                max(0, bg_color[2] - 75),
+                65  # Soft 25% max opacity
+            )
+            draw.ellipse(
+                [shadow_x, shadow_y, shadow_x + shadow_w, shadow_y + shadow_h],
+                fill=shadow_tint
+            )
+            blur_radius = max(2.0, shadow_h * 0.65)
+            shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(blur_radius))
+            solid_bg = Image.alpha_composite(solid_bg, shadow_layer)
+            
     # Paste enhanced product using alpha mask
     solid_bg.paste(enhanced_rgba.convert("RGB"), mask=alpha)
-    return solid_bg
+    return solid_bg.convert("RGB")
+
 
 
 def get_dominant_colors(img: Image.Image, mask: Image.Image = None, num_colors: int = 4) -> list[str]:
@@ -527,8 +563,8 @@ def enhance_artisan_product_image(image_path: str | Path) -> dict:
         if img.mode not in ("RGB", "RGBA"):
             img = img.convert("RGB")
 
-        # 2. Limit maximum dimension to prevent memory pressure (max 2048px)
-        max_dimension = 2048
+        # 2. Limit maximum dimension to 1200px for crisp, lightweight e-commerce presentation
+        max_dimension = 1200
         width, height = img.size
         if width > max_dimension or height > max_dimension:
             img.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
@@ -566,7 +602,7 @@ def enhance_artisan_product_image(image_path: str | Path) -> dict:
         # 8. Final photometric analysis of enhanced craft subject
         final_stats = analyze_image(final_studio_img, mask=enhanced_craft.split()[3])
 
-        # 9. Save final studio photograph matching file format
+        # 9. Save final studio photograph with high-compression optimization
         ext = img_path.suffix.lower()
         enhanced_filename = f"enhanced_{img_path.name}"
         enhanced_path = UPLOAD_DIR / enhanced_filename
@@ -575,12 +611,14 @@ def enhance_artisan_product_image(image_path: str | Path) -> dict:
         if ext == ".png":
             save_format = "PNG"
             save_kwargs["optimize"] = True
+            save_kwargs["compress_level"] = 9
         elif ext == ".webp":
             save_format = "WEBP"
-            save_kwargs["quality"] = 92
+            save_kwargs["quality"] = 88
+            save_kwargs["method"] = 6
         else:
             save_format = "JPEG"
-            save_kwargs["quality"] = 92
+            save_kwargs["quality"] = 88
             save_kwargs["optimize"] = True
 
         final_studio_img.save(enhanced_path, format=save_format, **save_kwargs)

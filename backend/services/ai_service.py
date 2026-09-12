@@ -267,7 +267,11 @@ def detect_visual_craft_domain(image_path: str) -> Optional[str]:
                     
                     # Terracotta / Clay / Earthenware pottery
                     if (r > 130 and g < 125 and b < 105 and (r - g) > 20) or (115 < r < 215 and 55 < g < 130 and 25 < b < 100):
-                        return "pottery"
+                        if aspect_ratio < 0.85:
+                            return "pottery_diya"
+                        elif aspect_ratio > 1.25:
+                            return "pottery"
+                        return "pottery_pot"
                     
                     # Wood / Furniture / Carvings (warm timber, walnut, teak, sheesham)
                     if (70 < r < 195 and 35 < g < 140 and 15 < b < 95 and r >= g):
@@ -284,10 +288,10 @@ def detect_visual_craft_domain(image_path: str) -> Optional[str]:
                         return "handloom"
             
             # Additional texture and metric heuristics
-            if stats["mean_saturation"] > 0.15:
-                return "handloom"
             if stats["sharpness_score"] > 350 and stats["mean_luminance"] > 160:
                 return "folk_art"
+            if stats["mean_saturation"] > 0.45 and stats["contrast_stddev"] > 40:
+                return "handloom"
                 
             # If colors are natural warm/earthy
             if colors:
@@ -295,7 +299,11 @@ def detect_visual_craft_domain(image_path: str) -> Optional[str]:
                 avg_g = sum(int(c[3:5], 16) for c in colors[:3]) / max(1, min(3, len(colors)))
                 avg_b = sum(int(c[5:7], 16) for c in colors[:3]) / max(1, min(3, len(colors)))
                 if avg_r > avg_b + 20 and avg_r > avg_g:
-                    return "pottery"
+                    if aspect_ratio < 0.85:
+                        return "pottery_diya"
+                    elif aspect_ratio > 1.25:
+                        return "pottery"
+                    return "pottery_pot"
                 elif avg_r > 75 and avg_g > 40 and avg_b < 100 and avg_r > avg_b + 15:
                     return "woodcraft"
     except Exception as e:
@@ -347,7 +355,11 @@ def generate_offline_craft_listing(
         domain = "folk_art"
     elif re.search(r"\b(brass|metal|metals|dhokra|bronze|copper|bell\s*metal|statue|statues|idol|idols|figurine|figurines|sculpture|sculptures)\b", search_text):
         domain = "metal"
-    elif re.search(r"\b(pot|pots|vase|vases|terracotta|clay|matka|matkas|earthen|diya|diyas|planter|planters|ceramic|ceramics|pottery)\b", search_text):
+    elif re.search(r"\b(diya|diyas|lamp|lamps|deepak|deepam|candle|oil\s*lamp)\b", search_text):
+        domain = "pottery_diya"
+    elif re.search(r"\b(matka|matkas|handi|handis|cooking\s*pot|clay\s*pot)\b", search_text):
+        domain = "pottery_pot"
+    elif re.search(r"\b(pot|pots|vase|vases|terracotta|clay|earthen|planter|planters|ceramic|ceramics|pottery|bankura|horse)\b", search_text):
         domain = "pottery"
     elif re.search(r"\b(saree|sarees|sari|saris|shawl|shawls|cloth|textile|textiles|handloom|handlooms|silk|cotton|kantha|dupatta|dupattas|stole|stoles|weave|weaving|wrap|wraps)\b", search_text):
         domain = "handloom"
@@ -521,6 +533,112 @@ def generate_offline_craft_listing(
             "search_keywords": ["wooden toy", "organic toy", "channapatna craft"],
             "suggested_min_price": 450,
             "suggested_max_price": 750
+        },
+        "pottery_diya": {
+            "category_slug": "pottery-ceramics",
+            "category_name": "Pottery & Terracotta",
+            "visual_analysis": {
+                "product_type": "Handcrafted Terracotta Oil Lamp / Diya",
+                "primary_material": "Natural River Clay",
+                "secondary_materials": "Natural Mineral Slip",
+                "craft_style": "Traditional Hand Molding & Potter Wheel",
+                "construction_method": "Hand-molded and open-kiln fired",
+                "shape_and_scale": "Handheld festive oil lamp",
+                "craftsmanship_level": "moderate",
+                "complexity_score": 38,
+                "labor_intensity": "moderate"
+            },
+            "price_factors": [
+                "Locally harvested alluvial river clay",
+                "Hand-shaped traditional oil reservoir spout",
+                "Wood kiln open-fire terracotta hue",
+                "Festive illumination and spiritual utility"
+            ],
+            "price_available": True,
+            "price_confidence": 0.88,
+            "complexity_score": 38,
+            "craftsmanship_level": "moderate",
+            "en": {
+                "name": "Handcrafted Terracotta Festive Oil Lamp (Diya)",
+                "title": "Set of Festive Handcrafted Terracotta Oil Lamps",
+                "description": "Lovingly hand-shaped by village potters using pure alluvial river clay. Fired in traditional open-air kilns to produce an authentic earthy terracotta finish for festive illumination and warmth.",
+                "material": "Natural River Clay, Mineral Slip",
+                "craft_details": "Hand-shaped on manual wheel and wood-kiln fired.",
+                "ai_rationale": "Estimated for authentic handcrafted terracotta oil lamps based on natural clay firing and traditional potter molding."
+            },
+            "hi": {
+                "name": "हस्तनिर्मित टेराकोटा मिट्टी का दीया",
+                "title": "कुम्हार द्वारा हाथ से गढ़ा पारंपरिक मिट्टी का दीया",
+                "description": "पवित्र नदी की चिकनी मिट्टी से कुम्हारों द्वारा निर्मित प्रामाणिक दीया। पारंपरिक भट्टी में पकाया गया, जो उत्सवों और दैनिक पूजा के लिए आदर्श है।",
+                "material": "प्राकृतिक नदी की मिट्टी",
+                "craft_details": "हाथ से गढ़ा एवं भट्टी में पकाया गया।",
+                "ai_rationale": "प्राकृतिक मिट्टी और पारंपरिक कुम्हार कला पर आधारित उचित मूल्य।"
+            },
+            "bn": {
+                "name": "হাতে তৈরি পোড়ামাটির প্রদীপ (দিয়া)",
+                "title": "ঐতিহ্যবাহী কুমোরের তৈরি পোড়ামাটির মাটির প্রদীপ",
+                "description": "খাঁটি পলিমাটি দিয়ে কুমোরদের হাতে তৈরি পরিবেশবান্ধব মাটির প্রদীপ। কাঠের চুল্লিতে পোড়ানো নিখুঁত কারুকাজ যা পূজা ও উৎসবের জন্য আদর্শ।",
+                "material": "প্রাকৃতিক পলিমাটি",
+                "craft_details": "হাতে গড়া ও চুল্লিতে পোড়ানো।",
+                "ai_rationale": "খাঁটি মাটির তৈরি কারিগরি প্রদীপের ন্যায্য মূল্য।"
+            },
+            "tags": ["Terracotta", "HandmadeDiya", "Pottery", "FestiveDecor"],
+            "search_keywords": ["terracotta diya", "clay lamp", "oil lamp", "handmade pottery"],
+            "suggested_min_price": 150,
+            "suggested_max_price": 380
+        },
+        "pottery_pot": {
+            "category_slug": "pottery-ceramics",
+            "category_name": "Pottery & Terracotta",
+            "visual_analysis": {
+                "product_type": "Traditional Earthen Clay Pot / Matka",
+                "primary_material": "Alluvial River Clay",
+                "secondary_materials": "Natural Ochre Slip",
+                "craft_style": "Wheel Throwing & Paddle Beating",
+                "construction_method": "Hand-thrown and paddle-shaped",
+                "shape_and_scale": "Domestic storage / cooling vessel",
+                "craftsmanship_level": "moderate",
+                "complexity_score": 45,
+                "labor_intensity": "moderate"
+            },
+            "price_factors": [
+                "Natural porous river clay for natural water cooling",
+                "Manual wheel-thrown spherical symmetry",
+                "Wood kiln low-fire craftsmanship",
+                "Traditional domestic utility"
+            ],
+            "price_available": True,
+            "price_confidence": 0.86,
+            "complexity_score": 45,
+            "craftsmanship_level": "moderate",
+            "en": {
+                "name": "Handmade Earthen Clay Matka / Pot",
+                "title": "Traditional Hand-Thrown Earthen Terracotta Pot",
+                "description": "Skillfully thrown on a manual potter's wheel using natural porous river clay. Naturally breathable and wood-kiln fired, perfect for authentic domestic storage and rustic decor.",
+                "material": "Natural Alluvial River Clay",
+                "craft_details": "Hand-thrown and paddle-beaten on traditional wheel.",
+                "ai_rationale": "Estimated for an earthen clay matka vessel based on clay quality, wheel shaping, and kiln firing."
+            },
+            "hi": {
+                "name": "हस्तनिर्मित मिट्टी का मटका / हांडी",
+                "title": "पारंपरिक कुम्हार के चाक पर बना मिट्टी का मटका",
+                "description": "प्राकृतिक छिद्रयुक्त चिकनी मिट्टी से बना प्रामाणिक मटका। जल को स्वाभाविक रूप से शीतल रखता है।",
+                "material": "प्राकृतिक चिकनी मिट्टी",
+                "craft_details": "चाक पर गढ़ा और हाथ से थापा गया।",
+                "ai_rationale": "चाक पर बने पारंपरिक मिट्टी के घड़े के लिए उचित मूल्य।"
+            },
+            "bn": {
+                "name": "হাতে তৈরি মাটির কলসি / হাঁড়ি",
+                "title": "ঐতিহ্যবাহী চাকে তৈরি পোড়ামাটির কলসি",
+                "description": "প্রাকৃতিক মাটির তৈরি ঐতিহ্যবাহী কলসি। জল ঠান্ডা ও স্বাস্থ্যকর রাখতে প্রাচীন হস্তশিল্প নিদর্শন।",
+                "material": "প্রাকৃতিক পলিমাটি",
+                "craft_details": "চাকে তৈরি ও পিটিয়ে গোল করা।",
+                "ai_rationale": "ঐতিহ্যবাহী মাটির কলসির জন্য উপযুক্ত বাজার দর।"
+            },
+            "tags": ["ClayPot", "Matka", "HandmadePottery", "Earthenware"],
+            "search_keywords": ["clay pot", "matka", "terracotta handi", "handmade pottery"],
+            "suggested_min_price": 250,
+            "suggested_max_price": 600
         },
         "pottery": {
             "category_slug": "pottery-ceramics",
@@ -936,10 +1054,24 @@ def generate_offline_craft_listing(
         price_reason = lang_content["ai_rationale"]
         ai_rationale = lang_content["ai_rationale"]
 
+    # Adapt title, name, and description if artisan provided a specific hint
+    final_name = lang_content["name"]
+    final_title = lang_content["title"]
+    final_description = lang_content["description"]
+    
+    if hint and len(hint.strip()) >= 3:
+        clean_hint = hint.strip()
+        clean_hint_title = " ".join(w.capitalize() for w in clean_hint.split())
+        if len(clean_hint.split()) >= 2:
+            final_title = clean_hint_title
+            final_name = clean_hint_title
+        elif not any(w.lower() in final_title.lower() for w in clean_hint.split()):
+            final_title = f"{clean_hint_title} - {lang_content['title']}"
+
     return {
-        "name": lang_content["name"],
-        "title": lang_content["title"],
-        "description": lang_content["description"],
+        "name": final_name,
+        "title": final_title,
+        "description": final_description,
         "category_slug": craft["category_slug"],
         "category_name": craft["category_name"],
         "material": lang_content["material"],

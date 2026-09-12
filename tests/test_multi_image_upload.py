@@ -71,10 +71,10 @@ class TestMultiImageUpload(unittest.TestCase):
         self.assertEqual(data["image_enhancement"]["original_url"], data["image_enhancements"][0]["original_url"])
         self.assertEqual(data["image_enhancement"]["enhanced_url"], data["image_enhancements"][0]["enhanced_url"])
 
-    def test_03_max_limit_5_photos(self):
-        """Uploading exactly 5 photos succeeds and enhances all 5 photos."""
-        sample_files = list(self.sample_dir.glob("*.jpg"))[:5]
-        self.assertEqual(len(sample_files), 5)
+    def test_03_max_limit_3_photos(self):
+        """Uploading exactly 3 photos succeeds and enhances all 3 photos."""
+        sample_files = list(self.sample_dir.glob("*.jpg"))[:3]
+        self.assertEqual(len(sample_files), 3)
         files = []
         for sf in sample_files:
             with open(sf, "rb") as f:
@@ -88,14 +88,14 @@ class TestMultiImageUpload(unittest.TestCase):
         )
         self.assertEqual(res.status_code, 200, res.text)
         data = res.json()
-        self.assertEqual(len(data["image_enhancements"]), 5)
+        self.assertEqual(len(data["image_enhancements"]), 3)
 
     def test_04_exceeding_limit_prevent_additional_photos(self):
-        """Uploading more than 5 photos enforces the 5-photo limit and ignores additional photos."""
+        """Uploading more than 3 photos enforces the 3-photo limit and ignores additional photos."""
         sample_files = list(self.sample_dir.glob("*.jpg"))
-        # Repeat files to send 7 files
+        # Repeat files to send 5 files
         files = []
-        for i in range(7):
+        for i in range(5):
             sf = sample_files[i % len(sample_files)]
             with open(sf, "rb") as f:
                 files.append(("files", (f"photo_{i}_{sf.name}", f.read(), "image/jpeg")))
@@ -108,8 +108,8 @@ class TestMultiImageUpload(unittest.TestCase):
         )
         self.assertEqual(res.status_code, 200, res.text)
         data = res.json()
-        # Strictly limited to 5 photos
-        self.assertEqual(len(data["image_enhancements"]), 5)
+        # Strictly limited to 3 photos
+        self.assertEqual(len(data["image_enhancements"]), 3)
 
     def test_05_zero_photos_rejected(self):
         """Submitting zero photos returns HTTP 400 Bad Request."""
