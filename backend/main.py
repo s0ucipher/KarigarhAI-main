@@ -73,15 +73,30 @@ app.include_router(notification_router.router)
 app.include_router(seller_router.router)
 app.include_router(mobile_router.router)
 
-# Mount Static File Directories
+# Mount Static File Directories with robust serverless discovery
+frontend_candidates = [
+    BASE_DIR / "frontend",
+    Path.cwd() / "frontend",
+    Path(__file__).resolve().parent.parent / "frontend",
+    Path("/var/task/frontend"),
+]
 frontend_dir = BASE_DIR / "frontend"
+for cand in frontend_candidates:
+    if cand.exists() and cand.is_dir():
+        frontend_dir = cand
+        break
+
 static_dir = frontend_dir / "static"
 css_dir = frontend_dir / "css"
 js_dir = frontend_dir / "js"
 
-static_dir.mkdir(parents=True, exist_ok=True)
-css_dir.mkdir(parents=True, exist_ok=True)
-js_dir.mkdir(parents=True, exist_ok=True)
+# In serverless read-only containers, suppress mkdir errors if directories already exist
+try:
+    static_dir.mkdir(parents=True, exist_ok=True)
+    css_dir.mkdir(parents=True, exist_ok=True)
+    js_dir.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
 
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
@@ -102,10 +117,17 @@ def health_check():
         }
     }
 
+@app.get("/api/index.py")
+@app.get("/api/index")
+def serve_api_index():
+    return health_check()
+
 @app.get("/")
 def serve_index():
     index_path = frontend_dir / "index.html"
-    return FileResponse(str(index_path))
+    if index_path.exists():
+        return FileResponse(str(index_path))
+    return JSONResponse(status_code=404, content={"detail": "Index file not found"})
 
 # Catch-all for SPA client routing
 @app.get("/{full_path:path}")
@@ -115,4 +137,7 @@ def catch_all(full_path: str):
     if requested.is_file():
         return FileResponse(str(requested))
     # Otherwise return index.html for SPA routing
-    return FileResponse(str(frontend_dir / "index.html"))
+    fallback_index = frontend_dir / "index.html"
+    if fallback_index.exists():
+        return FileResponse(str(fallback_index))
+    return JSONResponse(status_code=404, content={"detail": f"Path {full_path} not found"})

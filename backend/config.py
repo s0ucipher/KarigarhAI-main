@@ -13,13 +13,43 @@ if is_serverless or not os.access(str(BASE_DIR), os.W_OK):
     DB_PATH = TMP_DIR / "artisan_marketplace.db"
     UPLOAD_DIR = TMP_DIR / "uploads"
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    template_db = BASE_DIR / "artisan_marketplace.db"
-    if template_db.exists() and not DB_PATH.exists():
+
+    # Copy DB template if not present or empty
+    template_candidates = [
+        BASE_DIR / "artisan_marketplace.db",
+        Path.cwd() / "artisan_marketplace.db",
+        Path(__file__).resolve().parent.parent / "artisan_marketplace.db",
+        Path("/var/task/artisan_marketplace.db"),
+    ]
+    if not DB_PATH.exists() or DB_PATH.stat().st_size == 0:
         import shutil
-        try:
-            shutil.copy2(template_db, DB_PATH)
-        except Exception as e:
-            print(f"Warning: Failed to copy template DB to /tmp: {e}")
+        for cand in template_candidates:
+            if cand.exists() and cand.is_file() and cand.stat().st_size > 0:
+                try:
+                    shutil.copy2(cand, DB_PATH)
+                    break
+                except Exception as e:
+                    print(f"Warning: Failed to copy template DB to /tmp: {e}")
+
+    # Copy seed upload images to /tmp/uploads so product photos load properly
+    seed_uploads_dirs = [
+        BASE_DIR / "uploads",
+        Path.cwd() / "uploads",
+        Path(__file__).resolve().parent.parent / "uploads",
+        Path("/var/task/uploads"),
+    ]
+    import shutil
+    for seed_dir in seed_uploads_dirs:
+        if seed_dir.exists() and seed_dir.is_dir():
+            for f in seed_dir.iterdir():
+                if f.is_file():
+                    dest = UPLOAD_DIR / f.name
+                    if not dest.exists():
+                        try:
+                            shutil.copy2(f, dest)
+                        except Exception:
+                            pass
+            break
 else:
     UPLOAD_DIR = BASE_DIR / "uploads"
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
