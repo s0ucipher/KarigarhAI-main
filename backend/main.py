@@ -49,15 +49,40 @@ async def vercel_path_rewrite_middleware(request: Request, call_next):
     )
 
     if is_wrapper_path:
-        target_path = (
-            request.headers.get("x-matched-path")
-            or request.headers.get("x-vercel-matched-path")
-            or request.headers.get("x-forwarded-uri")
-            or request.query_params.get("__path__")
-        )
-        if not target_path and "path" in request.query_params:
-            sub = request.query_params["path"].lstrip("/")
-            target_path = f"/api/{sub}"
+        target_path = None
+
+        # Priority 1: Vercel regex rewrite capture header (e.g., "1=ai%2Fupload-and-enhance")
+        route_matches = request.headers.get("x-now-route-matches")
+        if route_matches:
+            try:
+                import urllib.parse
+                parsed = urllib.parse.parse_qs(route_matches)
+                if "1" in parsed and parsed["1"]:
+                    sub = urllib.parse.unquote(parsed["1"][0]).lstrip("/")
+                    if sub.startswith("uploads/"):
+                        target_path = f"/api/{sub}"
+                    elif sub.startswith("api/"):
+                        target_path = f"/{sub}"
+                    else:
+                        target_path = f"/api/{sub}"
+            except Exception:
+                pass
+
+        # Priority 2: Vercel request path headers
+        if not target_path:
+            for header_key in ("x-matched-path", "x-vercel-matched-path", "x-forwarded-uri", "x-original-url", "x-rewrite-url"):
+                val = request.headers.get(header_key)
+                if val and val not in ("/api/index.py", "/api/index", "/api", "/api/", "/api/[...path]", "/[...path]"):
+                    target_path = val.split("?")[0]
+                    break
+
+        # Priority 3: Custom query params (__path__ or dynamic [...path] param)
+        if not target_path:
+            if "__path__" in request.query_params:
+                target_path = request.query_params["__path__"].split("?")[0]
+            elif "path" in request.query_params:
+                sub = request.query_params["path"].lstrip("/")
+                target_path = f"/api/{sub}"
 
         if target_path and "[...path]" not in target_path and target_path not in (
             "/api/index.py", "/api/index", "/api", "/api/"
@@ -70,7 +95,7 @@ async def vercel_path_rewrite_middleware(request: Request, call_next):
     curr_path = request.scope.get("path", "")
     known_api_prefixes = (
         "auth", "ai", "products", "cart", "orders",
-        "notifications", "seller", "mobile", "health"
+        "notifications", "seller", "mobile", "health", "uploads"
     )
     for prefix in known_api_prefixes:
         if curr_path == f"/{prefix}" or curr_path.startswith(f"/{prefix}/"):
@@ -176,8 +201,6 @@ mount_safe_static(app, "/js", js_dir, "js")
 @app.get("/api/health")
 @app.get("/api")
 @app.get("/api/")
-@app.get("/api/index.py")
-@app.get("/api/index")
 def health_check():
     return {
         "status": "healthy",
@@ -191,10 +214,17 @@ def health_check():
         }
     }
 
-@app.get("/api/index.py")
-@app.get("/api/index")
-def serve_api_index():
-    return health_check()
+# Accept ANY HTTP method on serverless wrapper entrypoints to prevent Starlette 405 Method Not Allowed
+@app.api_route("/api/index.py", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
+@app.api_route("/api/index", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
+@app.api_route("/api/[...path]", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
+async def serve_api_index(request: Request):
+    if request.method in ("GET", "HEAD"):
+        return health_check()
+    return JSONResponse(
+        status_code=400,
+        content={"detail": f"Unmatched API endpoint for {request.method} {request.scope.get('path')}."}
+    )
 
 @app.get("/")
 def serve_index():
