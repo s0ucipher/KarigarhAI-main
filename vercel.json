@@ -3,19 +3,23 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.py?__path__=/api/$1"
+      "destination": "/api/index.py"
     },
     {
       "source": "/uploads/(.*)",
-      "destination": "/api/index.py?__path__=/uploads/$1"
+      "destination": "/api/index.py"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/|uploads/).*)",
       "destination": "/index.html"
     }
   ],
   "functions": {
     "api/index.py": {
+      "includeFiles": "{artisan_marketplace.db,backend/**,uploads/**}",
+      "maxDuration": 60
+    },
+    "api/[...path].py": {
       "includeFiles": "{artisan_marketplace.db,backend/**,uploads/**}",
       "maxDuration": 60
     }
