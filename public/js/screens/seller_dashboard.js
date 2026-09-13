@@ -53,11 +53,24 @@ async function renderSellerDashboard(container) {
   `;
 
   try {
-    const data = await api.getSellerDashboard();
-    const stats = data.stats;
-    const profile = data.profile;
-    const activeOrders = data.active_orders || [];
-    const products = data.all_products || [];
+    const rawData = await api.getSellerDashboard();
+    const data = (rawData && typeof rawData === "object") ? rawData : {};
+    const stats = (data.stats && typeof data.stats === "object") ? data.stats : {
+      total_products: 0,
+      active_orders_count: 0,
+      completed_orders_count: 0,
+      total_sales_count: 0,
+      total_earnings: 0,
+      rating: 4.9,
+      badge: "Artisan"
+    };
+    const profile = (data.profile && typeof data.profile === "object") ? data.profile : {
+      badge: "Artisan",
+      craft_specialization: "Handmade Crafts",
+      location: "India"
+    };
+    const activeOrders = Array.isArray(data.active_orders) ? data.active_orders : [];
+    const products = Array.isArray(data.all_products) ? data.all_products : [];
 
     container.innerHTML = `
       <div class="p-4 space-y-5 pb-20 max-w-5xl mx-auto">
@@ -116,7 +129,7 @@ async function renderSellerDashboard(container) {
             <div class="text-amber-700 text-lg mb-0.5">
               <i class="fa-solid fa-indian-rupee-sign"></i>
             </div>
-            <div class="text-base font-black text-stone-900">₹${stats.total_earnings.toLocaleString()}</div>
+            <div class="text-base font-black text-stone-900">₹${(Number(stats.total_earnings) || 0).toLocaleString()}</div>
             <div class="text-[10px] text-stone-500 font-bold uppercase tracking-wider mt-0.5">${t("totalEarnings")}</div>
           </div>
 
@@ -126,8 +139,8 @@ async function renderSellerDashboard(container) {
               <i class="fa-solid fa-truck-fast"></i>
             </div>
             <div class="text-base font-black text-stone-900 flex items-center justify-center gap-1">
-              ${stats.active_orders_count}
-              ${stats.active_orders_count > 0 ? `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>` : ''}
+              ${stats.active_orders_count || 0}
+              ${(stats.active_orders_count || 0) > 0 ? `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>` : ''}
             </div>
             <div class="text-[10px] text-stone-500 font-bold uppercase tracking-wider mt-0.5">${t("activeOrders")}</div>
           </div>

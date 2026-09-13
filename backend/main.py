@@ -36,6 +36,22 @@ app.add_middleware(
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
+# Vercel serverless path rewrite middleware: restores original endpoint path
+@app.middleware("http")
+async def vercel_path_rewrite_middleware(request: Request, call_next):
+    raw_path = request.scope.get("path", "")
+    if raw_path in ("/api/index.py", "/api/index", "/api/index.py/", "/api/index/"):
+        target_path = (
+            request.query_params.get("__path__")
+            or request.headers.get("x-matched-path")
+            or request.headers.get("x-vercel-matched-path")
+            or request.headers.get("x-forwarded-uri")
+        )
+        if target_path and target_path not in ("/api/index.py", "/api/index", "/api/index.py/", "/api/index/"):
+            clean_path = target_path.split("?")[0]
+            request.scope["path"] = clean_path
+    return await call_next(request)
+
 # Global exception handler to prevent unformatted 500 server crashes
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -158,6 +174,10 @@ def serve_index():
 # Catch-all for SPA client routing
 @app.get("/{full_path:path}")
 def catch_all(full_path: str):
+    # Never return index.html for API or upload requests
+    if full_path.startswith("api/") or full_path == "api" or full_path.startswith("uploads/"):
+        return JSONResponse(status_code=404, content={"detail": f"Endpoint /{full_path} not found"})
+
     # Check if file exists in any candidate frontend directory
     for fdir in frontend_candidates:
         requested = fdir / full_path
