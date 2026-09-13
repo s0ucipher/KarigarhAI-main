@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-from backend.config import UPLOAD_DIR, BASE_DIR
+from backend.config import UPLOAD_DIR, BASE_DIR, SEED_UPLOAD_DIRS
 from backend.database import init_db
 from backend.routers import (
     auth_router,
@@ -76,9 +76,13 @@ app.include_router(mobile_router.router)
 # Mount Static File Directories with robust serverless discovery
 frontend_candidates = [
     BASE_DIR / "frontend",
+    BASE_DIR / "public",
     Path.cwd() / "frontend",
+    Path.cwd() / "public",
     Path(__file__).resolve().parent.parent / "frontend",
+    Path(__file__).resolve().parent.parent / "public",
     Path("/var/task/frontend"),
+    Path("/var/task/public"),
 ]
 frontend_dir = BASE_DIR / "frontend"
 for cand in frontend_candidates:
@@ -98,10 +102,31 @@ try:
 except Exception:
     pass
 
-app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
-app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
-app.mount("/css", StaticFiles(directory=str(css_dir)), name="css")
-app.mount("/js", StaticFiles(directory=str(js_dir)), name="js")
+# Safe static mount helper to ensure Starlette never crashes on non-existent directories in serverless
+def mount_safe_static(app_instance: FastAPI, route: str, directory: Path, name: str):
+    dir_path = Path(directory)
+    if not (dir_path.exists() and dir_path.is_dir()):
+        fallback = Path("/tmp") / "static_fallbacks" / name
+        fallback.mkdir(parents=True, exist_ok=True)
+        dir_path = fallback
+    app_instance.mount(route, StaticFiles(directory=str(dir_path)), name=name)
+
+# Custom handler for uploads that checks writable UPLOAD_DIR and bundled SEED_UPLOAD_DIRS
+@app.get("/uploads/{filename}")
+async def serve_upload_file(filename: str):
+    p = UPLOAD_DIR / filename
+    if p.is_file():
+        return FileResponse(str(p))
+    for s_dir in SEED_UPLOAD_DIRS:
+        seed_p = s_dir / filename
+        if seed_p.is_file():
+            return FileResponse(str(seed_p))
+    return JSONResponse(status_code=404, content={"detail": "Image not found"})
+
+mount_safe_static(app, "/uploads", UPLOAD_DIR, "uploads")
+mount_safe_static(app, "/static", static_dir, "static")
+mount_safe_static(app, "/css", css_dir, "css")
+mount_safe_static(app, "/js", js_dir, "js")
 
 @app.get("/api/health")
 def health_check():
@@ -124,20 +149,23 @@ def serve_api_index():
 
 @app.get("/")
 def serve_index():
-    index_path = frontend_dir / "index.html"
-    if index_path.exists():
-        return FileResponse(str(index_path))
+    for fdir in frontend_candidates:
+        index_path = fdir / "index.html"
+        if index_path.is_file():
+            return FileResponse(str(index_path))
     return JSONResponse(status_code=404, content={"detail": "Index file not found"})
 
 # Catch-all for SPA client routing
 @app.get("/{full_path:path}")
 def catch_all(full_path: str):
-    # If file exists in frontend, serve it
-    requested = frontend_dir / full_path
-    if requested.is_file():
-        return FileResponse(str(requested))
+    # Check if file exists in any candidate frontend directory
+    for fdir in frontend_candidates:
+        requested = fdir / full_path
+        if requested.is_file():
+            return FileResponse(str(requested))
     # Otherwise return index.html for SPA routing
-    fallback_index = frontend_dir / "index.html"
-    if fallback_index.exists():
-        return FileResponse(str(fallback_index))
+    for fdir in frontend_candidates:
+        fallback_index = fdir / "index.html"
+        if fallback_index.is_file():
+            return FileResponse(str(fallback_index))
     return JSONResponse(status_code=404, content={"detail": f"Path {full_path} not found"})

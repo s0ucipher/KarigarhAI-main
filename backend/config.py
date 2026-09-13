@@ -31,29 +31,19 @@ if is_serverless or not os.access(str(BASE_DIR), os.W_OK):
                 except Exception as e:
                     print(f"Warning: Failed to copy template DB to /tmp: {e}")
 
-    # Copy seed upload images to /tmp/uploads so product photos load properly
-    seed_uploads_dirs = [
+    # Discover bundled seed uploads directories without copying 469 files at cold start
+    seed_candidates = [
         BASE_DIR / "uploads",
         Path.cwd() / "uploads",
         Path(__file__).resolve().parent.parent / "uploads",
         Path("/var/task/uploads"),
     ]
-    import shutil
-    for seed_dir in seed_uploads_dirs:
-        if seed_dir.exists() and seed_dir.is_dir():
-            for f in seed_dir.iterdir():
-                if f.is_file():
-                    dest = UPLOAD_DIR / f.name
-                    if not dest.exists():
-                        try:
-                            shutil.copy2(f, dest)
-                        except Exception:
-                            pass
-            break
+    SEED_UPLOAD_DIRS = [cand for cand in seed_candidates if cand.exists() and cand.is_dir()]
 else:
     UPLOAD_DIR = BASE_DIR / "uploads"
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     DB_PATH = BASE_DIR / "artisan_marketplace.db"
+    SEED_UPLOAD_DIRS = [UPLOAD_DIR]
 
 # JWT Configuration with bulletproof fallback against empty environment variables
 jwt_secret_env = os.getenv("JWT_SECRET")

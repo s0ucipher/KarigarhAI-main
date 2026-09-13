@@ -2,6 +2,7 @@ import os
 import json
 import re
 import logging
+from typing import Optional, Dict, Any, List, Union
 from pathlib import Path
 from backend.config import GEMINI_API_KEY
 from backend.services.pricing_engine import calculate_artisan_price, round_inr_price

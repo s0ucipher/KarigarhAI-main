@@ -3,6 +3,7 @@ import json
 import hashlib
 import os
 from datetime import datetime
+from pathlib import Path
 from backend.config import DB_PATH, BASE_DIR
 
 def ensure_template_copied():
