@@ -1,3 +1,4 @@
+from __future__ import annotations
 import sqlite3
 import json
 import hashlib
@@ -7,7 +8,7 @@ from pathlib import Path
 from backend.config import DB_PATH, BASE_DIR
 
 def ensure_template_copied():
-    if not DB_PATH.exists():
+    if not DB_PATH.exists() or (DB_PATH.is_file() and DB_PATH.stat().st_size == 0):
         candidate_paths = [
             BASE_DIR / "artisan_marketplace.db",
             Path.cwd() / "artisan_marketplace.db",

@@ -94,8 +94,9 @@ async def vercel_path_rewrite_middleware(request: Request, call_next):
     # 2. Normalize paths where /api prefix was stripped by Vercel serverless routing
     curr_path = request.scope.get("path", "")
     known_api_prefixes = (
-        "auth", "ai", "products", "cart", "orders",
-        "notifications", "seller", "mobile", "health", "uploads"
+        "auth", "ai", "products", "categories", "cart", "orders",
+        "notifications", "seller", "mobile", "health", "uploads",
+        "enquiries", "translate", "pricing", "speech"
     )
     for prefix in known_api_prefixes:
         if curr_path == f"/{prefix}" or curr_path.startswith(f"/{prefix}/"):
@@ -199,6 +200,8 @@ mount_safe_static(app, "/css", css_dir, "css")
 mount_safe_static(app, "/js", js_dir, "js")
 
 @app.get("/api/health")
+@app.get("/healthz")
+@app.get("/health")
 @app.get("/api")
 @app.get("/api/")
 def health_check():

@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -9,4 +10,11 @@ from backend.main import app
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.getenv("PORT", "8000"))
+    host = os.getenv("HOST", "0.0.0.0")
+    is_prod = bool(os.getenv("RENDER") or os.getenv("ENVIRONMENT") == "production")
+    reload = not is_prod and os.getenv("RELOAD", "true").lower() in ("true", "1")
+    if reload:
+        uvicorn.run("main:app", host=host, port=port, reload=True, reload_dirs=[str(ROOT_DIR / "backend")])
+    else:
+        uvicorn.run("main:app", host=host, port=port, reload=False)

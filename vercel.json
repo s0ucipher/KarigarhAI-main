@@ -10,17 +10,13 @@
       "destination": "/api/index.py"
     },
     {
-      "source": "/((?!api/|uploads/).*)",
+      "source": "/((?!api/|uploads/|css/|js/|static/|favicon\\.ico|.*\\.[a-zA-Z0-9]+).*)",
       "destination": "/index.html"
     }
   ],
   "functions": {
-    "api/index.py": {
-      "includeFiles": "{artisan_marketplace.db,backend/**,uploads/**}",
-      "maxDuration": 60
-    },
-    "api/[...path].py": {
-      "includeFiles": "{artisan_marketplace.db,backend/**,uploads/**}",
+    "api/*.py": {
+      "includeFiles": "{artisan_marketplace.db,backend/**}",
       "maxDuration": 60
     }
   }

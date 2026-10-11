@@ -1,4 +1,6 @@
+from __future__ import annotations
 import jwt
+from typing import Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials

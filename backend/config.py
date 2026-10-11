@@ -5,14 +5,34 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
-# Determine if running in Vercel serverless or read-only container
-is_serverless = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
-if is_serverless or not os.access(str(BASE_DIR), os.W_OK):
+# Determine runtime environment
+is_vercel = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+is_render = bool(os.getenv("RENDER"))
+is_serverless = is_vercel or not os.access(str(BASE_DIR), os.W_OK)
+
+# Custom storage overrides (useful on Render with persistent disk e.g. /var/data)
+custom_db_path = os.getenv("SQLITE_DB_PATH") or os.getenv("DATABASE_PATH")
+custom_upload_dir = os.getenv("UPLOAD_DIR")
+
+if custom_db_path:
+    DB_PATH = Path(custom_db_path)
+    if custom_upload_dir:
+        UPLOAD_DIR = Path(custom_upload_dir)
+    else:
+        UPLOAD_DIR = DB_PATH.parent / "uploads"
+    try:
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+elif is_serverless:
     # In Vercel serverless, root is read-only. Database and uploads must reside in /tmp
     TMP_DIR = Path("/tmp")
     DB_PATH = TMP_DIR / "artisan_marketplace.db"
     UPLOAD_DIR = TMP_DIR / "uploads"
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
 
     # Copy DB template if not present or empty
     template_candidates = [
@@ -30,20 +50,28 @@ if is_serverless or not os.access(str(BASE_DIR), os.W_OK):
                     break
                 except Exception as e:
                     print(f"Warning: Failed to copy template DB to /tmp: {e}")
-
-    # Discover bundled seed uploads directories without copying 469 files at cold start
-    seed_candidates = [
-        BASE_DIR / "uploads",
-        Path.cwd() / "uploads",
-        Path(__file__).resolve().parent.parent / "uploads",
-        Path("/var/task/uploads"),
-    ]
-    SEED_UPLOAD_DIRS = [cand for cand in seed_candidates if cand.exists() and cand.is_dir()]
 else:
-    UPLOAD_DIR = BASE_DIR / "uploads"
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    UPLOAD_DIR = Path(custom_upload_dir) if custom_upload_dir else BASE_DIR / "uploads"
+    try:
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
     DB_PATH = BASE_DIR / "artisan_marketplace.db"
-    SEED_UPLOAD_DIRS = [UPLOAD_DIR]
+
+seed_candidates = [
+    BASE_DIR / "backend" / "seed_assets" / "uploads",
+    BASE_DIR / "public" / "uploads",
+    BASE_DIR / "frontend" / "uploads",
+    BASE_DIR / "uploads",
+    Path.cwd() / "backend" / "seed_assets" / "uploads",
+    Path.cwd() / "uploads",
+    Path(__file__).resolve().parent / "seed_assets" / "uploads",
+    Path("/var/task/backend/seed_assets/uploads"),
+    Path("/var/task/uploads"),
+]
+SEED_UPLOAD_DIRS = [cand for cand in seed_candidates if cand.exists() and cand.is_dir()]
+if UPLOAD_DIR not in SEED_UPLOAD_DIRS:
+    SEED_UPLOAD_DIRS.insert(0, UPLOAD_DIR)
 
 # JWT Configuration with bulletproof fallback against empty environment variables
 jwt_secret_env = os.getenv("JWT_SECRET")
@@ -58,7 +86,8 @@ except Exception:
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 PORT = int(os.getenv("PORT") or 8000)
-HOST = os.getenv("HOST", "127.0.0.1")
+# Default to 0.0.0.0 for Render, container environments, or if HOST is explicitly set
+HOST = os.getenv("HOST", "0.0.0.0" if (is_render or is_serverless) else "127.0.0.1")
 
 # Firebase Authentication Configuration
 FIREBASE_API_KEY = os.getenv("FIREBASE_API_KEY", "")
@@ -68,4 +97,5 @@ FIREBASE_STORAGE_BUCKET = os.getenv("FIREBASE_STORAGE_BUCKET", "")
 FIREBASE_MESSAGING_SENDER_ID = os.getenv("FIREBASE_MESSAGING_SENDER_ID", "")
 FIREBASE_APP_ID = os.getenv("FIREBASE_APP_ID", "")
 FIREBASE_MEASUREMENT_ID = os.getenv("FIREBASE_MEASUREMENT_ID", "")
+
 
