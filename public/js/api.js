@@ -256,18 +256,22 @@ class ApiClient {
   }
 
   async getMe() {
-    const res = await this.request("/api/auth/me");
+    try {
+      const res = await this.request("/api/auth/me");
 
-    if (res.user) {
-      this.user = res.user;
+      if (res && res.user) {
+        this.user = res.user;
 
-      localStorage.setItem(
-        "kalasetu_user",
-        JSON.stringify(res.user)
-      );
+        localStorage.setItem(
+          "kalasetu_user",
+          JSON.stringify(res.user)
+        );
+        return res.user;
+      }
+      return this.user || null;
+    } catch (err) {
+      return this.user || null;
     }
-
-    return res.user;
   }
 
   async updateProfile(profileData) {

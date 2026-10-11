@@ -77,6 +77,11 @@ async function renderBuyerProfile(container) {
 
   try {
     const user = await api.getMe();
+    if (!user || !user.id) {
+      api.clearAuth();
+      renderBuyerProfile(container);
+      return;
+    }
     const buyerProfile = user.buyer_profile || {};
 
     container.innerHTML = `

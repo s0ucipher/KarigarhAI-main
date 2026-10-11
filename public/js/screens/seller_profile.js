@@ -55,6 +55,11 @@ async function renderSellerProfile(container) {
 
   try {
     const user = await api.getMe();
+    if (!user || !user.id) {
+      api.clearAuth();
+      renderSellerProfile(container);
+      return;
+    }
     const profile = user.seller_profile || {};
 
     container.innerHTML = `

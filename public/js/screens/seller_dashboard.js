@@ -78,11 +78,11 @@ async function renderSellerDashboard(container) {
         <div class="bg-gradient-to-r from-amber-800 to-amber-900 rounded-2xl p-4 text-white shadow-md relative overflow-hidden">
           <div class="flex items-start justify-between relative z-10">
             <div class="flex items-center gap-3">
-              <img src="${api.user.avatar_url || '/static/images/avatars/artisan1.png'}" 
+              <img src="${(api.user && api.user.avatar_url) || '/static/images/avatars/artisan1.png'}" 
                    class="w-13 h-13 rounded-full border-2 border-amber-300/60 object-cover shadow">
               <div>
                 <div class="flex items-center gap-2">
-                  <h1 class="text-lg font-bold">${t("helloArtisan")}, ${api.user.name.split(' ')[0]}</h1>
+                  <h1 class="text-lg font-bold">${t("helloArtisan")}, ${(api.user && api.user.name ? api.user.name.split(' ')[0] : 'Artisan')}</h1>
                   <span class="bg-amber-500/30 border border-amber-300/40 text-amber-200 text-[10px] px-2 py-0.5 rounded-full font-bold">
                     <i class="fa-solid fa-certificate text-amber-300"></i> ${profile.badge || 'Artisan'}
                   </span>

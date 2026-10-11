@@ -51,43 +51,55 @@ async def vercel_path_rewrite_middleware(request: Request, call_next):
     if is_wrapper_path:
         target_path = None
 
-        # Priority 1: Vercel regex rewrite capture header (e.g., "1=ai%2Fupload-and-enhance")
-        route_matches = request.headers.get("x-now-route-matches")
-        if route_matches:
-            try:
+        # Priority 1: Query param __path__ explicitly passed by Vercel rewrite rule
+        if "__path__" in request.query_params:
+            target_path = request.query_params["__path__"].split("?")[0]
+            # Strip __path__ from raw query_string so endpoints only receive real params
+            qs = request.scope.get("query_string", b"").decode("utf-8", errors="ignore")
+            if qs:
                 import urllib.parse
-                parsed = urllib.parse.parse_qs(route_matches)
-                if "1" in parsed and parsed["1"]:
-                    sub = urllib.parse.unquote(parsed["1"][0]).lstrip("/")
-                    if sub.startswith("uploads/"):
-                        target_path = f"/api/{sub}"
-                    elif sub.startswith("api/"):
-                        target_path = f"/{sub}"
-                    else:
-                        target_path = f"/api/{sub}"
-            except Exception:
-                pass
+                parsed_qs = urllib.parse.parse_qs(qs, keep_blank_values=True)
+                parsed_qs.pop("__path__", None)
+                request.scope["query_string"] = urllib.parse.urlencode(parsed_qs, doseq=True).encode("utf-8")
+        elif "path" in request.query_params:
+            sub = request.query_params["path"].lstrip("/")
+            target_path = f"/api/{sub}"
 
-        # Priority 2: Vercel request path headers
+        # Priority 2: Vercel request path headers (fallback)
         if not target_path:
-            for header_key in ("x-matched-path", "x-vercel-matched-path", "x-forwarded-uri", "x-original-url", "x-rewrite-url"):
+            for header_key in (
+                "x-matched-path", "x-vercel-matched-path", "x-forwarded-uri",
+                "x-original-url", "x-rewrite-url", "x-invoke-path"
+            ):
                 val = request.headers.get(header_key)
                 if val and val not in ("/api/index.py", "/api/index", "/api", "/api/", "/api/[...path]", "/[...path]"):
                     target_path = val.split("?")[0]
                     break
 
-        # Priority 3: Custom query params (__path__ or dynamic [...path] param)
+        # Priority 3: Vercel regex rewrite capture header (legacy)
         if not target_path:
-            if "__path__" in request.query_params:
-                target_path = request.query_params["__path__"].split("?")[0]
-            elif "path" in request.query_params:
-                sub = request.query_params["path"].lstrip("/")
-                target_path = f"/api/{sub}"
+            route_matches = request.headers.get("x-now-route-matches")
+            if route_matches:
+                try:
+                    import urllib.parse
+                    parsed = urllib.parse.parse_qs(route_matches)
+                    if "1" in parsed and parsed["1"]:
+                        sub = urllib.parse.unquote(parsed["1"][0]).lstrip("/")
+                        if sub.startswith("uploads/"):
+                            target_path = f"/api/{sub}"
+                        elif sub.startswith("api/"):
+                            target_path = f"/{sub}"
+                        else:
+                            target_path = f"/api/{sub}"
+                except Exception:
+                    pass
 
         if target_path and "[...path]" not in target_path and target_path not in (
             "/api/index.py", "/api/index", "/api", "/api/"
         ):
             clean_target = target_path.split("?")[0]
+            if not clean_target.startswith("/"):
+                clean_target = f"/{clean_target}"
             request.scope["path"] = clean_target
             raw_path = clean_target
 
